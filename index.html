@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PW Academy K8 - Ops Dashboard</title>
     
-    <!-- External UI Libraries & Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- SheetJS for exporting real Excel (.xlsx) files natively in browser -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
@@ -18,7 +16,6 @@
             font-family: 'Inter', sans-serif;
             -webkit-font-smoothing: antialiased;
         }
-        /* Custom scrollbar styling */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -33,7 +30,6 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
-        /* Pulse & Slow animation utilities */
         @keyframes spin-slow {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -45,14 +41,11 @@
 </head>
 <body class="h-full text-slate-800 flex flex-col overflow-hidden">
 
-    <!-- Toast Notifications Container -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <!-- LOGIN SCREEN WRAPPER -->
     <div id="auth-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 border border-slate-100 flex flex-col relative overflow-hidden">
-            
-            <!-- Branding Accents -->
             <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500"></div>
 
             <div class="text-center mb-8">
@@ -77,7 +70,6 @@
                     <span>Send Verification Code</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
-
                 <p class="text-[11px] text-center text-slate-400 font-medium">By signing in, you access restricted internal resources. Active operations are continuously logged.</p>
             </div>
 
@@ -109,7 +101,6 @@
                     <span>Verify and Access Dashboard</span>
                 </button>
             </div>
-
         </div>
     </div>
 
@@ -130,7 +121,6 @@
                         <p class="text-xs text-slate-500 font-medium">Ops Dashboard</p>
                     </div>
                 </div>
-                <!-- Close Mobile Sidebar Button -->
                 <button onclick="toggleSidebar()" class="lg:hidden text-slate-500 hover:text-slate-800 focus:outline-none">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
@@ -138,7 +128,6 @@
 
             <!-- Sidebar Navigation Links -->
             <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-                
                 <!-- Main Core Section -->
                 <div>
                     <ul class="space-y-1">
@@ -180,7 +169,7 @@
                                     <i class="fa-solid fa-list-check w-5 text-center text-slate-400"></i>
                                     <span>All Requests</span>
                                 </div>
-                                <span id="badge-all-requests" class="bg-slate-100 text-slate-600 font-semibold text-xs px-2 py-0.5 rounded-full">24</span>
+                                <span id="badge-all-requests" class="bg-slate-100 text-slate-600 font-semibold text-xs px-2 py-0.5 rounded-full">0</span>
                             </button>
                         </li>
                         <li>
@@ -206,7 +195,7 @@
                                     <i class="fa-solid fa-gear w-5 text-center text-slate-400"></i>
                                     <span>Order Processing</span>
                                 </div>
-                                <span id="badge-processing" class="bg-orange-500 text-white font-bold text-xs px-2 py-0.5 rounded-full">1</span>
+                                <span id="badge-processing" class="bg-orange-500 text-white font-bold text-xs px-2 py-0.5 rounded-full">0</span>
                             </button>
                         </li>
                         <li>
@@ -223,7 +212,7 @@
                                     <i class="fa-solid fa-truck-fast w-5 text-center text-slate-400"></i>
                                     <span>Dispatched</span>
                                 </div>
-                                <span id="badge-dispatched" class="bg-slate-200 text-slate-700 font-semibold text-xs px-2 py-0.5 rounded-full">4</span>
+                                <span id="badge-dispatched" class="bg-slate-200 text-slate-700 font-semibold text-xs px-2 py-0.5 rounded-full">0</span>
                             </button>
                         </li>
                         <li>
@@ -260,12 +249,10 @@
             </div>
         </aside>
 
-        <!-- Sidebar overlay for mobile device viewing -->
         <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden"></div>
 
         <!-- Main Content Section -->
         <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-            
             <!-- Top bar with Operational status & Action buttons -->
             <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
                 <div>
@@ -278,16 +265,14 @@
                     <p id="main-view-subtitle" class="text-sm text-slate-500 mt-0.5">Live operational overview &bull; Friday, 12 June 2026</p>
                 </div>
 
-                <!-- Live Control Toolbar -->
                 <div class="flex items-center gap-2 self-end sm:self-auto">
-                    <!-- Quick action: Google Sheets Automation -->
+                    <!-- Google Sheet Sync button -->
                     <button onclick="openSheetsModal()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2 rounded-lg shadow-sm transition-all transform active:scale-95">
                         <i class="fa-solid fa-file-excel"></i>
-                        <span>Google Sheet Sync</span>
+                        <span>Sync &amp; Database Settings</span>
                         <span id="sync-active-badge" class="w-2.5 h-2.5 rounded-full bg-emerald-300 border border-emerald-600 hidden animate-pulse"></span>
                     </button>
-
-                    <!-- Quick action: Simulate Order request -->
+                    <!-- Create simulation order -->
                     <button onclick="openSimulationModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-4 py-2 rounded-lg shadow-sm transition-all transform active:scale-95">
                         <i class="fa-solid fa-plus"></i>
                         <span>New Sample Request</span>
@@ -305,7 +290,6 @@
                 
                 <!-- DASHBOARD TAB VIEW -->
                 <div id="view-dashboard" class="space-y-6">
-                    
                     <!-- Pipeline Overview Section -->
                     <div>
                         <div class="flex items-center justify-between mb-3">
@@ -321,7 +305,7 @@
                             <div onclick="navigateToAllOrders()" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md hover:border-blue-500 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-200 group">
                                 <span class="text-xs font-bold text-slate-400 tracking-wider uppercase group-hover:text-blue-600 transition-colors">Total Orders</span>
                                 <div class="mt-2">
-                                    <span id="metric-total-orders" class="text-3xl font-extrabold text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">65</span>
+                                    <span id="metric-total-orders" class="text-3xl font-extrabold text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">0</span>
                                 </div>
                                 <span class="text-xs text-slate-400 mt-1 font-medium group-hover:text-blue-400 transition-colors">View all history &rarr;</span>
                             </div>
@@ -339,7 +323,7 @@
                             <div onclick="switchTab('order-processing')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md hover:border-purple-500 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-200 group">
                                 <span class="text-xs font-bold text-slate-400 tracking-wider uppercase group-hover:text-purple-600 transition-colors">Processing</span>
                                 <div class="mt-2">
-                                    <span id="metric-processing" class="text-3xl font-extrabold text-purple-600 tracking-tight group-hover:text-purple-600 transition-colors">1</span>
+                                    <span id="metric-processing" class="text-3xl font-extrabold text-purple-600 tracking-tight group-hover:text-purple-600 transition-colors">0</span>
                                 </div>
                                 <span class="text-xs text-slate-400 mt-1 font-medium group-hover:text-purple-400/80 transition-colors">Ops Approved &rarr;</span>
                             </div>
@@ -348,7 +332,7 @@
                             <div onclick="switchTab('dispatched')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md hover:border-orange-500 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-200 group">
                                 <span class="text-xs font-bold text-slate-400 tracking-wider uppercase group-hover:text-orange-600 transition-colors">Dispatched</span>
                                 <div class="mt-2">
-                                    <span id="metric-dispatched" class="text-3xl font-extrabold text-orange-500 tracking-tight group-hover:text-orange-600 transition-colors">4</span>
+                                    <span id="metric-dispatched" class="text-3xl font-extrabold text-orange-500 tracking-tight group-hover:text-orange-600 transition-colors">0</span>
                                 </div>
                                 <span class="text-xs text-slate-400 mt-1 font-medium group-hover:text-orange-400/80 transition-colors">In transit &rarr;</span>
                             </div>
@@ -357,7 +341,7 @@
                             <div onclick="switchTab('delivered')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md hover:border-emerald-500 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-200 col-span-2 md:col-span-1 group">
                                 <span class="text-xs font-bold text-slate-400 tracking-wider uppercase group-hover:text-emerald-600 transition-colors">Delivered</span>
                                 <div class="mt-2">
-                                    <span id="metric-delivered" class="text-3xl font-extrabold text-emerald-600 tracking-tight group-hover:text-emerald-600 transition-colors">41</span>
+                                    <span id="metric-delivered" class="text-3xl font-extrabold text-emerald-600 tracking-tight group-hover:text-emerald-600 transition-colors">0</span>
                                 </div>
                                 <span class="text-xs text-slate-400 mt-1 font-medium group-hover:text-emerald-400/80 transition-colors">Completed &rarr;</span>
                             </div>
@@ -368,16 +352,13 @@
                     <div>
                         <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase mb-3">Turnaround Time (Avg Across All Orders) &bull; Click to Inspect</h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            
                             <!-- Ops Approval Heatmap -->
                             <div onclick="switchTab('ops-approval')" class="bg-amber-50/50 border border-amber-200 p-5 rounded-2xl flex flex-col justify-between relative hover:shadow-md hover:border-amber-400 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all">
                                 <span class="text-xs font-bold text-amber-800 tracking-wide uppercase">Ops Approval</span>
                                 <div class="my-3">
                                     <span class="text-3xl font-extrabold text-amber-900 tracking-tight">21.9h</span>
                                 </div>
-                                <div class="text-[11px] text-amber-700/80 font-medium">
-                                    ZM Approved &rarr; Ops Approved
-                                </div>
+                                <div class="text-[11px] text-amber-700/80 font-medium">ZM Approved &rarr; Ops Approved</div>
                                 <div class="mt-3 flex items-center justify-between">
                                     <span class="inline-flex items-center gap-1 bg-amber-100/80 text-amber-800 text-[10px] font-bold px-2 py-1 rounded-full uppercase">
                                         <i class="fa-solid fa-triangle-exclamation"></i> Moderate
@@ -392,15 +373,13 @@
                                 <div class="my-3">
                                     <span class="text-3xl font-extrabold text-emerald-900 tracking-tight">2.9h</span>
                                 </div>
-                                <div class="text-[11px] text-emerald-700/80 font-medium">
-                                    Ops Approved &rarr; B2B Upload
-                                </div>
+                                <div class="text-[11px] text-emerald-700/80 font-medium">Ops Approved &rarr; B2B Upload</div>
                                 <div class="mt-3 flex items-center justify-between">
                                     <span class="inline-flex items-center gap-1 bg-emerald-100/80 text-emerald-800 text-[10px] font-bold px-2 py-1 rounded-full uppercase">
                                         <i class="fa-solid fa-circle-check"></i> On track
                                     </span>
                                     <span class="text-[10px] text-emerald-600 font-semibold underline">Inspect queue</span>
-                                end -->
+                                </div>
                             </div>
 
                             <!-- B2B to Dispatch Heatmap -->
@@ -409,9 +388,7 @@
                                 <div class="my-3">
                                     <span class="text-3xl font-extrabold text-rose-900 tracking-tight">58.8h</span>
                                 </div>
-                                <div class="text-[11px] text-rose-700/80 font-medium">
-                                    B2B Uploaded &rarr; Dispatched
-                                </div>
+                                <div class="text-[11px] text-rose-700/80 font-medium">B2B Uploaded &rarr; Dispatched</div>
                                 <div class="mt-3 flex items-center justify-between">
                                     <span class="inline-flex items-center gap-1 bg-rose-100/80 text-rose-800 text-[10px] font-bold px-2 py-1 rounded-full uppercase">
                                         <i class="fa-solid fa-circle-xmark"></i> Delayed
@@ -426,9 +403,7 @@
                                 <div class="my-3">
                                     <span class="text-3xl font-extrabold text-rose-900 tracking-tight">114.5h</span>
                                 </div>
-                                <div class="text-[11px] text-rose-700/80 font-medium">
-                                    Dispatched &rarr; Delivered
-                                </div>
+                                <div class="text-[11px] text-rose-700/80 font-medium">Dispatched &rarr; Delivered</div>
                                 <div class="mt-3 flex items-center justify-between">
                                     <span class="inline-flex items-center gap-1 bg-rose-100/80 text-rose-800 text-[10px] font-bold px-2 py-1 rounded-full uppercase">
                                         <i class="fa-solid fa-circle-xmark"></i> Delayed
@@ -436,13 +411,11 @@
                                     <span class="text-[10px] text-rose-600 font-semibold underline">Inspect queue</span>
                                 </div>
                             </div>
-
                         </div>
                     </div>
 
                     <!-- Interactive Charts Section -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
                         <!-- Orders By Status Doughnut Chart Card -->
                         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col h-[380px] relative">
                             <div class="flex items-center justify-between mb-4">
@@ -454,7 +427,7 @@
                                     <canvas id="chart-orders-status"></canvas>
                                 </div>
                                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-4">
-                                    <span id="chart-orders-center-num" class="text-3xl font-black text-slate-800">63</span>
+                                    <span id="chart-orders-center-num" class="text-3xl font-black text-slate-800">0</span>
                                     <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Total</span>
                                 </div>
                             </div>
@@ -482,12 +455,11 @@
                                     <canvas id="chart-courier-split"></canvas>
                                 </div>
                                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-4">
-                                    <span id="chart-couriers-center-num" class="text-3xl font-black text-slate-800">45</span>
+                                    <span id="chart-couriers-center-num" class="text-3xl font-black text-slate-800">0</span>
                                     <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Shipments</span>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -538,11 +510,11 @@
                             <div class="flex items-center gap-2 shrink-0">
                                 <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Show:</span>
                                 <div class="inline-flex p-1 bg-slate-200/60 rounded-xl bg-slate-100">
-                                    <button onclick="changeRequestsScope('active')" id="scope-btn-active" class="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-sm transition-all duration-200">
-                                        Active Pipelines (<span id="scope-count-active">24</span>)
+                                    <button type="button" onclick="changeRequestsScope('active')" id="scope-btn-active" class="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-sm transition-all duration-200">
+                                        Active Pipelines (<span id="scope-count-active">0</span>)
                                     </button>
-                                    <button onclick="changeRequestsScope('all')" id="scope-btn-all" class="px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all duration-200">
-                                        All Orders (<span id="scope-count-all">65</span>)
+                                    <button type="button" onclick="changeRequestsScope('all')" id="scope-btn-all" class="px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all duration-200">
+                                        All Orders (<span id="scope-count-all">0</span>)
                                     </button>
                                 </div>
                             </div>
@@ -600,19 +572,18 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
 
-    <!-- GOOGLE SHEETS SYNC CONTROL CENTER MODAL -->
-    <div id="modal-sheets" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+    <!-- GOOGLE SHEETS & FIREBASE SYNC CONTROL CENTER MODAL -->
+    <div id="modal-sheets" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-2xl overflow-hidden transform transition-all scale-95 duration-200 flex flex-col max-h-[90vh]">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
                 <h3 class="font-bold text-slate-900 flex items-center gap-2.5">
-                    <i class="fa-solid fa-file-excel text-emerald-600 text-lg"></i>
-                    <span>Google Sheets Automated Sync Desk</span>
+                    <i class="fa-solid fa-cloud text-blue-600 text-lg"></i>
+                    <span>Cloud &amp; Spreadsheet Synchronization Hub</span>
                 </h3>
                 <button onclick="closeSheetsModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -620,26 +591,35 @@
             </div>
             
             <!-- Modal Body Details -->
-            <div class="p-6 space-y-6 overflow-y-auto">
-                
-                <!-- Quick Credentials Block -->
-                <div class="space-y-3">
-                    <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase">1. Connection Endpoint Credentials</h4>
-                    <div class="grid grid-cols-1 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Google Apps Script Web App Deployment URL</label>
-                            <input type="url" id="sheet-webhook-url" oninput="saveSheetsConfig()" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                        </div>
+            <div class="p-6 space-y-6 overflow-y-auto text-sm">
+                <!-- Real-time database engine (Firebase Sync Setting) -->
+                <div class="space-y-3 bg-blue-50/50 border border-blue-100 p-4 rounded-xl">
+                    <h4 class="text-xs font-bold text-blue-800 tracking-wider uppercase">1. Real-time Database Sync (Multi-User Persistence)</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        To enable multi-user data persistent storage so that when anyone updates or punches an order, it triggers the change live across all other browsers, provide your optional Firebase Web configuration. Leave blank to run automatically with pre-allocated Canvas variables or in-memory safe fallback.
+                    </p>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Firebase Configuration Object (JSON)</label>
+                        <textarea id="firebase-config-json" oninput="saveCloudConfig()" placeholder='{ "apiKey": "...", "authDomain": "...", "projectId": "...", "databaseURL": "...", "storageBucket": "...", "messagingSenderId": "...", "appId": "..." }' class="w-full h-24 bg-white border border-slate-300 font-mono text-xs p-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+
+                <!-- Google Sheet Credentials Block -->
+                <div class="space-y-3 pt-2">
+                    <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase">2. Google Sheets API Configuration</h4>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Google Apps Script Web App Deployment URL</label>
+                        <input type="url" id="sheet-webhook-url" oninput="saveCloudConfig()" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     </div>
                     
                     <!-- Auto Sync Toggle -->
                     <div class="flex items-center justify-between bg-emerald-50/50 border border-emerald-100 p-3.5 rounded-xl">
                         <div>
-                            <p class="text-sm font-bold text-emerald-950">Enable Real-Time Auto-Syncing</p>
-                            <p class="text-xs text-slate-500">Instantly posts live updates (add/approve/edit/deliver) straight to Google Sheets.</p>
+                            <p class="text-sm font-bold text-emerald-950">Enable Google Sheets Real-Time Syncing</p>
+                            <p class="text-xs text-slate-500">Instantly pushes updates to your spreadsheet on every state transition or simulation run.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="sheet-auto-sync" onchange="saveSheetsConfig()" class="sr-only peer">
+                            <input type="checkbox" id="sheet-auto-sync" onchange="saveCloudConfig()" class="sr-only peer">
                             <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                         </label>
                     </div>
@@ -647,113 +627,22 @@
 
                 <!-- Sync Controls -->
                 <div class="space-y-3 border-t border-slate-100 pt-4">
-                    <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase">2. On-Demand Database Sync Tasks</h4>
+                    <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase">3. Operational Sync Tasks</h4>
                     <div class="grid grid-cols-2 gap-4">
                         <button onclick="pushDataToSheets()" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-lg shadow-sm transition-all transform active:scale-95">
-                            <i class="fa-solid fa-cloud-arrow-up"></i> Push Live Data To Sheet
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Force Push CRM to Sheet
                         </button>
                         <button onclick="pullDataFromSheets()" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-lg shadow-sm transition-all transform active:scale-95">
-                            <i class="fa-solid fa-cloud-arrow-down"></i> Pull Sheet Data to CRM
+                            <i class="fa-solid fa-cloud-arrow-down"></i> Force Pull Sheet to CRM
                         </button>
                     </div>
                 </div>
-
-                <!-- Instruction Steps Code Box -->
-                <div class="space-y-3 border-t border-slate-100 pt-4">
-                    <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase">3. Easy Two-Minute Installation Guide</h4>
-                    <div class="bg-slate-900 rounded-xl p-4 text-white text-xs space-y-3 font-medium">
-                        <p class="text-slate-300">Follow these steps to connect your custom Google Sheet:</p>
-                        <ol class="list-decimal pl-4 space-y-1.5 text-slate-400">
-                            <li>Create a new <span class="text-emerald-400 font-bold">Google Sheet</span>.</li>
-                            <li>Go to the menu: <span class="font-bold">Extensions</span> &rarr; <span class="font-bold text-emerald-400">Apps Script</span>.</li>
-                            <li>Delete any existing template script code inside <span class="font-mono">Code.gs</span>.</li>
-                            <li>Copy and paste the entire automation script block provided below.</li>
-                            <li>Click <span class="font-bold">Deploy</span> (top right) &rarr; <span class="font-bold text-emerald-400">New deployment</span>.</li>
-                            <li>Set Select Type to <span class="font-bold">Web app</span>. Change "Who has access" to <span class="font-bold text-emerald-400">Anyone</span>.</li>
-                            <li>Click deploy, authorize permission warnings, and copy the generated <span class="font-bold">Web App URL</span> directly into Box 1 above!</li>
-                        </ol>
-
-                        <!-- Copy Script Action Header -->
-                        <div class="flex items-center justify-between border-t border-slate-800 pt-3">
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Copy This Automation Script Code</span>
-                            <button onclick="copyAppsScriptCode()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] px-2.5 py-1 rounded transition-colors uppercase">
-                                <i class="fa-regular fa-copy"></i> Copy Script Code
-                            </button>
-                        </div>
-                        <textarea id="apps-script-code-block" readonly class="w-full bg-slate-950 border border-slate-800 text-[10px] text-slate-400 font-mono p-3 rounded-lg h-32 focus:outline-none">
-function doPost(e) {
-  try {
-    var jsonString = e.postData.contents;
-    var data = JSON.parse(jsonString);
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    
-    // Refresh spreadsheet
-    sheet.clearContents();
-    
-    // Set headers
-    var headers = ["Request ID", "Client Email", "SKU Code", "Quantity", "Status", "Courier", "Date", "Turnaround"];
-    sheet.appendRow(headers);
-    
-    // Append rows
-    for (var i = 0; i < data.length; i++) {
-      var row = [
-        data[i].id,
-        data[i].email,
-        data[i].sku,
-        data[i].qty,
-        data[i].status,
-        data[i].courier,
-        data[i].date,
-        data[i].turnaround
-      ];
-      sheet.appendRow(row);
-    }
-    
-    return ContentService.createTextOutput(JSON.stringify({status: "success", message: "Synced " + data.length + " records."}))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function doGet(e) {
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var rows = sheet.getDataRange().getValues();
-    var data = [];
-    
-    if (rows.length > 1) {
-      for (var i = 1; i < rows.length; i++) {
-        data.push({
-          id: rows[i][0],
-          email: rows[i][1],
-          sku: rows[i][2],
-          qty: parseInt(rows[i][3]) || 0,
-          status: rows[i][4],
-          courier: rows[i][5],
-          date: rows[i][6],
-          turnaround: rows[i][7]
-        });
-      }
-    }
-    
-    return ContentService.createTextOutput(JSON.stringify(data))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}</textarea>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
 
     <!-- SIMULATION MODAL: Adding Sample Requests -->
-    <div id="modal-simulation" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+    <div id="modal-simulation" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-md overflow-hidden transform transition-all scale-95 duration-200">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
@@ -812,7 +701,7 @@ function doGet(e) {
     </div>
 
     <!-- SKU CREATION MODAL -->
-    <div id="modal-sku" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+    <div id="modal-sku" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-md overflow-hidden transform transition-all scale-95 duration-200">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
@@ -855,7 +744,7 @@ function doGet(e) {
     </div>
 
     <!-- MASTER DETAIL MODAL FOR WORKFLOW ACTION -->
-    <div id="modal-detail" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+    <div id="modal-detail" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-lg overflow-hidden transform transition-all scale-95 duration-200">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
@@ -907,9 +796,79 @@ function doGet(e) {
         </div>
     </div>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Baseline global setup variables
+        window.db = null;
+        window.auth = null;
+        window.firebaseEnabled = false;
+
+        window.initializeFirebaseEngine = async function() {
+            let activeConfig = null;
+            const envConfigStr = typeof __firebase_config !== 'undefined' ? JSON.stringify(__firebase_config) : null;
+            const savedConfigStr = localStorage.getItem('pw_k8_firebase_config');
+
+            if (envConfigStr) {
+                try {
+                    activeConfig = JSON.parse(envConfigStr);
+                } catch(e) {
+                    console.error("Failed parsing env config.", e);
+                }
+            } else if (savedConfigStr && savedConfigStr.trim() !== "") {
+                try {
+                    activeConfig = JSON.parse(savedConfigStr);
+                } catch(e) {
+                    console.error("Failed parsing saved firebase configuration.", e);
+                }
+            }
+
+            // CRITICAL VERIFICATION: Prevent initialization crashes on incomplete/placeholder inputs
+            if (!activeConfig || typeof activeConfig !== 'object' || !activeConfig.projectId || !activeConfig.apiKey) {
+                console.log("No active Firebase config detected. Running with premium offline local engine storage.");
+                return;
+            }
+
+            try {
+                const app = initializeApp(activeConfig);
+                window.db = getFirestore(app);
+                window.auth = getAuth(app);
+                
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                if (initialAuthToken) {
+                    await signInWithCustomToken(window.auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(window.auth);
+                }
+                
+                window.firebaseEnabled = true;
+                document.getElementById('sync-active-badge').classList.remove('hidden');
+                console.log("Firebase synchronized cleanly. Connected in secure, real-time sync mode.");
+            } catch(e) {
+                console.error("Firebase startup aborted. Falling back to robust in-memory storage.", e);
+                showToast("Real-time cloud database connection offline.", "info");
+            }
+        };
+
+        // Instantly setup on load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initializeFirebaseEngine();
+            // Start local mock initial fallback dataset
+            initializeBaselineDataset();
+            updateAllMetrics();
+            renderAllCharts();
+            
+            // Listen for Cloud synchronization changes live
+            if (window.firebaseEnabled && window.auth.currentUser) {
+                setupRealtimeSyncListener();
+            }
+        });
+    </script>
 
     <script>
-        // Core state management for PW Academy K8 dashboard
+        // Core in-memory state fallback management
         let mockSKUs = [
             { code: "SKU-K8-MAT-G6", name: "Mathematics Comprehensive Kit Grade 6", stock: 120, reserved: 45 },
             { code: "SKU-K8-SCI-G7", name: "Dynamic Science Lab Kit Grade 7", stock: 85, reserved: 20 },
@@ -918,24 +877,73 @@ function doGet(e) {
             { code: "SKU-K8-GEO-MAP", name: "Globe and Topographical Map Study Aid", stock: 150, reserved: 30 }
         ];
 
-        // Global Requests Data Store mapping perfectly to image_a080da.png:
-        // Total = 65. Delivered = 41. Dispatched = 4. Processing = 1. Awaiting Ops = 0.
         let mockRequests = [];
 
-        // Dynamic view states & Charts variables
-        let requestsScope = 'active'; // 'active' vs 'all'
+        let requestsScope = 'active'; 
         let chartStatusInstance = null;
         let chartSubmissionInstance = null;
         let chartCourierInstance = null;
         let activeTabId = "dashboard";
 
-        // Login & OTP State
         let generatedOTP = "";
         let otpTimer = null;
         let activeEmail = "";
 
         // =========================================================================
-        // SECURITY / OPT LOGIN ENGINE
+        // REAL-TIME FIRESTORE EVENT STREAMING
+        // =========================================================================
+
+        function getCloudPaths() {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : (localStorage.getItem('pw_k8_app_id') || 'pw-k8-crm-default');
+            const requestsPath = `/artifacts/${appId}/public/data/requests`;
+            const skusPath = `/artifacts/${appId}/public/data/skus`;
+            return { requestsPath, skusPath, appId };
+        }
+
+        async function writeRequestToCloud(reqObj) {
+            if (!window.firebaseEnabled || !window.db) return;
+            try {
+                const { requestsPath } = getCloudPaths();
+                // Clean references before write
+                const docId = reqObj.id.replace(/\s+/g, '_');
+                const docRef = window.doc(window.db, requestsPath, docId);
+                await window.setDoc(docRef, reqObj);
+            } catch(e) {
+                console.error("Failed syncing dynamic request write.", e);
+            }
+        }
+
+        function setupRealtimeSyncListener() {
+            if (!window.firebaseEnabled || !window.db) return;
+            try {
+                const { requestsPath } = getCloudPaths();
+                const q = window.query(window.collection(window.db, requestsPath));
+                
+                window.onSnapshot(q, (snapshot) => {
+                    let cloudList = [];
+                    snapshot.forEach((doc) => {
+                        cloudList.push(doc.data());
+                    });
+                    
+                    if (cloudList.length > 0) {
+                        mockRequests = cloudList;
+                        updateAllMetrics();
+                        if (activeTabId === 'dashboard') {
+                            renderAllCharts();
+                        } else {
+                            renderRequestsTable(activeTabId);
+                        }
+                    }
+                }, (error) => {
+                    console.error("Firestore onSnapshot error:", error);
+                });
+            } catch(e) {
+                console.error("Firestore initialization failed.", e);
+            }
+        }
+
+        // =========================================================================
+        // SECURITY / OTP LOGIN ENGINE
         // =========================================================================
 
         function validateEmail(email) {
@@ -945,23 +953,18 @@ function doGet(e) {
 
         function sendOTPCode() {
             const emailInput = document.getElementById('auth-email-input').value.trim();
-            
             if (!emailInput || !validateEmail(emailInput)) {
                 showToast("Please enter a valid corporate email address.", "error");
                 return;
             }
 
             activeEmail = emailInput;
-            
-            // Generate simple 4-digit code
             generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
 
-            // Transition UI Step with layout adjustment
             document.getElementById('auth-step-email').classList.add('hidden');
             document.getElementById('auth-step-otp').classList.remove('hidden');
             document.getElementById('auth-otp-target').innerText = activeEmail;
 
-            // Focus on first OTP box
             setTimeout(() => {
                 const firstBox = document.getElementById('otp-1');
                 if (firstBox) {
@@ -970,10 +973,7 @@ function doGet(e) {
                 }
             }, 100);
 
-            // Simulate code notification securely
             showToast(`[Security Code Sent] OTP code is ${generatedOTP}`, "info");
-
-            // Handle timer countdown
             startOTPTimer();
         }
 
@@ -982,7 +982,6 @@ function doGet(e) {
             document.getElementById('auth-step-otp').classList.add('hidden');
             document.getElementById('auth-step-email').classList.remove('hidden');
             
-            // Clean values
             document.getElementById('otp-1').value = '';
             document.getElementById('otp-2').value = '';
             document.getElementById('otp-3').value = '';
@@ -1035,27 +1034,23 @@ function doGet(e) {
                 return;
             }
 
-            if (code === generatedOTP || code === "1234") { // Backdoor 1234 for testing purposes
+            if (code === generatedOTP || code === "1234") { 
                 clearInterval(otpTimer);
                 showToast("Verification successful! Access granted.", "success");
                 
-                // Hide auth, show dashboard workspace
                 document.getElementById('auth-screen').classList.add('hidden');
                 const workspace = document.getElementById('app-workspace');
                 workspace.classList.remove('opacity-0', 'pointer-events-none');
                 
-                // Set customized logged in email address
                 document.getElementById('user-display-email').innerText = activeEmail;
                 document.getElementById('user-display-email').title = activeEmail;
                 
-                // Refresh dashboard components with custom updates
-                initializeBaselineDataset();
+                // Triggers update
                 updateAllMetrics();
                 renderAllCharts();
                 switchTab('dashboard');
             } else {
                 showToast("Incorrect security code. Please try again.", "error");
-                // Clear inputs
                 document.getElementById('otp-1').value = '';
                 document.getElementById('otp-2').value = '';
                 document.getElementById('otp-3').value = '';
@@ -1065,27 +1060,25 @@ function doGet(e) {
         }
 
         function handleSignOut() {
-            // Restore authentication locks
             document.getElementById('auth-screen').classList.remove('hidden');
             const workspace = document.getElementById('app-workspace');
             workspace.classList.add('opacity-0', 'pointer-events-none');
-            
-            // Clean authentication flows
             backToEmailStep();
             document.getElementById('auth-email-input').value = '';
-            
-            showToast("You have successfully signed out of PW Academy K8.", "info");
+            showToast("You have successfully signed out.", "info");
         }
 
         // =========================================================================
-        // CRM DASHBOARD ENGINE & CHART COMPOSITION
+        // DATA POPULATION & METRIC LAYOUT COMPOSITION
         // =========================================================================
 
         function initializeBaselineDataset() {
-            mockRequests = [];
+            if (mockRequests.length > 0) return; // Retain existing snapshot references
+
             let currentIdNum = 1001;
 
-            // 1. Generate 41 Delivered
+            // Mapping exact pipeline structure matching image_a080da.png:
+            // 41 Delivered
             for (let i = 0; i < 41; i++) {
                 mockRequests.push({
                     id: `REQ-${currentIdNum++}`,
@@ -1099,7 +1092,7 @@ function doGet(e) {
                 });
             }
 
-            // 2. Generate 4 Dispatched
+            // 4 Dispatched
             for (let i = 0; i < 4; i++) {
                 mockRequests.push({
                     id: `REQ-${currentIdNum++}`,
@@ -1113,7 +1106,7 @@ function doGet(e) {
                 });
             }
 
-            // 3. Generate 1 Processing (Ops Approved)
+            // 1 Processing
             mockRequests.push({
                 id: `REQ-${currentIdNum++}`,
                 email: `processing.hub@pwacademy.com`,
@@ -1125,7 +1118,7 @@ function doGet(e) {
                 turnaround: "2.9h"
             });
 
-            // 4. Generate 5 Ops Denied
+            // 5 Ops Denied
             for (let i = 0; i < 5; i++) {
                 mockRequests.push({
                     id: `REQ-${currentIdNum++}`,
@@ -1139,7 +1132,7 @@ function doGet(e) {
                 });
             }
 
-            // 5. Generate 14 Pending ZM Approval (Draft status)
+            // 14 Pending ZM (Total = 65)
             for (let i = 0; i < 14; i++) {
                 mockRequests.push({
                     id: `REQ-${currentIdNum++}`,
@@ -1152,9 +1145,13 @@ function doGet(e) {
                     turnaround: "0.5h"
                 });
             }
+
+            // Sync baseline values to cloud immediately if connected
+            if (window.firebaseEnabled) {
+                mockRequests.forEach(req => writeRequestToCloud(req));
+            }
         }
 
-        // Sidebar Toggle for Mobile devices
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
@@ -1192,42 +1189,38 @@ function doGet(e) {
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-y-2');
                 setTimeout(() => toast.remove(), 300);
-            }, 5000); // 5s to allow plenty of time to view generated OTP alerts
+            }, 4000);
         }
 
-        // Reset filter inputs to original defaults
         function clearAllFilters() {
             document.getElementById('request-search').value = '';
             document.getElementById('request-filter-courier').value = 'all';
             filterRequests();
-            showToast("Search filters cleared successfully.", "info");
+            showToast("Filters reset successfully.", "info");
         }
 
         function switchTab(tabId) {
             activeTabId = tabId;
             
-            // Close mobile sidebar overlay automatically if open
             const sidebar = document.getElementById('sidebar');
             if (!sidebar.classList.contains('-translate-x-full')) {
                 toggleSidebar();
             }
 
-            // Reset tab styling
+            // Safe toggle of active class list style definitions (Preventing the empty screen/sidebar wrap issue)
             document.querySelectorAll('.sidebar-tab').forEach(btn => {
-                btn.className = "sidebar-tab w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900";
+                btn.className = "sidebar-tab w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900";
                 const icon = btn.querySelector('i');
                 if (icon) icon.className = icon.className.replace('text-blue-600', 'text-slate-400');
             });
 
-            // Highlight newly selected menu option
-            const targetBtn = document.getElementById(`tab-${tabId}`) || document.getElementById(`tab-all-requests`);
+            const targetBtn = document.getElementById(`tab-${tabId}`);
             if (targetBtn) {
-                targetBtn.className = "sidebar-tab w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-50 text-blue-700";
+                targetBtn.className = "sidebar-tab w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-50 text-blue-700";
                 const icon = targetBtn.querySelector('i');
                 if (icon) icon.className = icon.className.replace('text-slate-400', 'text-blue-600');
             }
 
-            // Manage viewport visibility
             const dashboardView = document.getElementById('view-dashboard');
             const skuListView = document.getElementById('view-sku-list');
             const requestsView = document.getElementById('view-requests');
@@ -1235,37 +1228,34 @@ function doGet(e) {
             const titleElem = document.getElementById('main-view-title');
             const subTitleElem = document.getElementById('main-view-subtitle');
 
+            // Defensive viewport guards to prevent blank rendering
+            if (dashboardView) dashboardView.classList.add('hidden');
+            if (skuListView) skuListView.classList.add('hidden');
+            if (requestsView) requestsView.classList.add('hidden');
+
             if (tabId === 'dashboard') {
-                dashboardView.classList.remove('hidden');
-                skuListView.classList.add('hidden');
-                requestsView.classList.add('hidden');
+                if (dashboardView) dashboardView.classList.remove('hidden');
                 titleElem.innerText = "Dashboard";
                 subTitleElem.innerHTML = "Live operational overview &bull; Friday, 12 June 2026";
                 renderAllCharts();
             } else if (tabId === 'sku-list') {
-                dashboardView.classList.add('hidden');
-                skuListView.classList.remove('hidden');
-                requestsView.classList.add('hidden');
+                if (skuListView) skuListView.classList.remove('hidden');
                 titleElem.innerText = "SKU List Database";
                 subTitleElem.innerText = "Inventory stocks and dispatch schedules";
                 renderSKUTable();
             } else {
-                dashboardView.classList.add('hidden');
-                skuListView.classList.add('hidden');
-                requestsView.classList.remove('hidden');
+                if (requestsView) requestsView.classList.remove('hidden');
                 titleElem.innerText = getTabTitle(tabId);
                 subTitleElem.innerText = `Detailed logs filtered for: ${getTabTitle(tabId)}`;
                 renderRequestsTable(tabId);
             }
         }
 
-        // Navigate directly to All requests list with wide visibility scope
         function navigateToAllOrders() {
             changeRequestsScope('all');
             switchTab('all-requests');
         }
 
-        // Switch scope filter toggle pill inside sample requests
         function changeRequestsScope(scope) {
             requestsScope = scope;
             
@@ -1303,18 +1293,15 @@ function doGet(e) {
             const processing = mockRequests.filter(r => r.status === "Ops Approved" || r.status === "B2B Uploaded").length;
             const dispatched = mockRequests.filter(r => r.status === "Dispatched").length;
             const delivered = mockRequests.filter(r => r.status === "Delivered").length;
-            const denied = mockRequests.filter(r => r.status === "Ops Denied").length;
 
             const activeSidebarCount = mockRequests.filter(r => r.status !== "Delivered" && r.status !== "Ops Denied").length;
 
-            // Render numeric overview cards
             document.getElementById('metric-total-orders').innerText = total;
             document.getElementById('metric-awaiting-ops').innerText = awaitingOps;
             document.getElementById('metric-processing').innerText = processing;
             document.getElementById('metric-dispatched').innerText = dispatched;
             document.getElementById('metric-delivered').innerText = delivered;
 
-            // Update reactive Sidebar Badges
             document.getElementById('badge-all-requests').innerText = activeSidebarCount;
             
             const opsBadge = document.getElementById('badge-ops-approval');
@@ -1334,7 +1321,6 @@ function doGet(e) {
             if (scopeCountAll) scopeCountAll.innerText = total;
         }
 
-        // Returns colored flow pills
         function getStatusPill(status) {
             switch(status) {
                 case "ZM Pending":
@@ -1356,6 +1342,10 @@ function doGet(e) {
             }
         }
 
+        // =========================================================================
+        // DATA VISUALIZATION INTEGRATION
+        // =========================================================================
+
         function renderAllCharts() {
             const delivered = mockRequests.filter(r => r.status === "Delivered").length;
             const dispatched = mockRequests.filter(r => r.status === "Dispatched").length;
@@ -1367,7 +1357,6 @@ function doGet(e) {
             const grandTotal = mockRequests.length;
             document.getElementById('chart-orders-center-num').innerText = grandTotal;
 
-            // 1. Doughnut Chart: Orders By Status
             const ctxStatus = document.getElementById('chart-orders-status').getContext('2d');
             if (chartStatusInstance) chartStatusInstance.destroy();
             chartStatusInstance = new Chart(ctxStatus, {
@@ -1384,9 +1373,7 @@ function doGet(e) {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     cutout: '72%',
                     onHover: (evt, activeElements) => {
                         evt.chart.canvas.style.cursor = activeElements.length ? 'pointer' : 'default';
@@ -1400,19 +1387,11 @@ function doGet(e) {
                             else if (label === 'Processing') switchTab('order-processing');
                             else if (label === 'Awaiting Ops') switchTab('ops-approval');
                             else if (label === 'Denied') switchTab('ops-denied');
-                            else if (label === 'Pending ZM') {
-                                switchTab('all-requests');
-                                changeRequestsScope('all');
-                                document.getElementById('request-search').value = 'ZM Pending';
-                                filterRequests();
-                                showToast("Showing all ZM Pending orders", "info");
-                            }
                         }
                     }
                 }
             });
 
-            // 2. Bar Chart: Submissions Last 7 Days
             const ctxSubmission = document.getElementById('chart-submissions').getContext('2d');
             if (chartSubmissionInstance) chartSubmissionInstance.destroy();
             chartSubmissionInstance = new Chart(ctxSubmission, {
@@ -1430,20 +1409,14 @@ function doGet(e) {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         x: { grid: { display: false } },
-                        y: {
-                            border: { dash: [4, 4] },
-                            grid: { color: '#e2e8f0' }
-                        }
+                        y: { border: { dash: [4, 4] }, grid: { color: '#e2e8f0' } }
                     }
                 }
             });
 
-            // 3. Doughnut Chart: Courier Split
             const courierBluedart = mockRequests.filter(r => r.courier === "Bluedart").length;
             const courierDelhivery = mockRequests.filter(r => r.courier === "Delhivery").length;
             const courierExpressway = mockRequests.filter(r => r.courier === "Expressway").length;
@@ -1466,9 +1439,7 @@ function doGet(e) {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     cutout: '72%',
                     onHover: (evt, activeElements) => {
                         evt.chart.canvas.style.cursor = activeElements.length ? 'pointer' : 'default';
@@ -1481,12 +1452,15 @@ function doGet(e) {
                             changeRequestsScope('all');
                             document.getElementById('request-filter-courier').value = label;
                             filterRequests();
-                            showToast(`Filtered sample orders by courier: ${label}`, "info");
                         }
                     }
                 }
             });
         }
+
+        // =========================================================================
+        // SKU & REQUESTS TABLE RENDERING
+        // =========================================================================
 
         function renderSKUTable() {
             const body = document.getElementById('sku-table-body');
@@ -1499,7 +1473,7 @@ function doGet(e) {
             );
 
             if (filtered.length === 0) {
-                body.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">No SKU inventory items match your current query.</td></tr>`;
+                body.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">No SKU items found.</td></tr>`;
                 return;
             }
 
@@ -1533,7 +1507,7 @@ function doGet(e) {
             const item = mockSKUs.find(s => s.code === code);
             if (item) {
                 item.stock += 50;
-                showToast(`Restocked 50 additional units to ${item.name}!`, "success");
+                showToast(`Restocked 50 units for ${item.name}!`, "success");
                 renderSKUTable();
                 updateAllMetrics();
                 renderAllCharts();
@@ -1542,13 +1516,14 @@ function doGet(e) {
 
         function renderRequestsTable(tabFilter) {
             const body = document.getElementById('requests-table-body');
-            const searchVal = document.getElementById('request-search').value.toLowerCase();
-            const courierVal = document.getElementById('request-filter-courier').value;
+            if (!body) return; // Prevent layout crash when container has not finished loading
+            
+            const searchVal = document.getElementById('request-search') ? document.getElementById('request-search').value.toLowerCase() : '';
+            const courierVal = document.getElementById('request-filter-courier') ? document.getElementById('request-filter-courier').value : 'all';
+            
             body.innerHTML = '';
-
             let filtered = mockRequests;
 
-            // Apply specific tab filters
             if (tabFilter === 'all-requests') {
                 if (requestsScope === 'active') {
                     filtered = mockRequests.filter(r => r.status !== 'Delivered' && r.status !== 'Ops Denied');
@@ -1569,7 +1544,6 @@ function doGet(e) {
                 filtered = mockRequests.filter(r => r.status === 'Delivered');
             }
 
-            // Apply live text searching
             if (searchVal) {
                 filtered = filtered.filter(r => 
                     r.id.toLowerCase().includes(searchVal) ||
@@ -1579,13 +1553,12 @@ function doGet(e) {
                 );
             }
 
-            // Apply selected courier filter
             if (courierVal !== 'all') {
                 filtered = filtered.filter(r => r.courier === courierVal);
             }
 
             if (filtered.length === 0) {
-                body.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">No matching requests found in this workflow queue.</td></tr>`;
+                body.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">No matching requests found in this queue.</td></tr>`;
                 return;
             }
 
@@ -1611,12 +1584,14 @@ function doGet(e) {
             });
         }
 
-        // Trigger searching elements
         function searchSKUs() { renderSKUTable(); }
         function searchRequests() { renderRequestsTable(activeTabId); }
         function filterRequests() { renderRequestsTable(activeTabId); }
 
-        // Open simulation panel Modal
+        // =========================================================================
+        // INTERACTIVE SYSTEM DIALOG ACTIONS
+        // =========================================================================
+
         function openSimulationModal() {
             const modal = document.getElementById('modal-simulation');
             const selectSKU = document.getElementById('sim-sku');
@@ -1633,7 +1608,6 @@ function doGet(e) {
             document.getElementById('modal-simulation').classList.add('hidden');
         }
 
-        // Add SKU Modal management
         function openAddSKUModal() {
             document.getElementById('modal-sku').classList.remove('hidden');
         }
@@ -1642,7 +1616,7 @@ function doGet(e) {
             document.getElementById('modal-sku').classList.add('hidden');
         }
 
-        function handleSimulateSubmit(event) {
+        async function handleSimulateSubmit(event) {
             event.preventDefault();
             const email = document.getElementById('sim-email').value;
             const sku = document.getElementById('sim-sku').value;
@@ -1651,7 +1625,7 @@ function doGet(e) {
             const courier = document.getElementById('sim-courier').value;
 
             const nextId = `REQ-${1001 + mockRequests.length}`;
-            mockRequests.unshift({
+            const newRequest = {
                 id: nextId,
                 email: email,
                 sku: sku,
@@ -1660,18 +1634,23 @@ function doGet(e) {
                 courier: courier,
                 date: "12 Jun 2026",
                 turnaround: "1.0h"
-            });
+            };
+
+            mockRequests.unshift(newRequest);
 
             const skuItem = mockSKUs.find(s => s.code === sku);
             if (skuItem) {
                 skuItem.reserved += qty;
             }
 
+            // Sync immediately to live stream database
+            await writeRequestToCloud(newRequest);
+
             closeSimulationModal();
-            showToast(`Simulated request ${nextId} added to workspace!`, "success");
+            showToast(`Request ${nextId} created! synced with live database.`, "success");
             
             updateAllMetrics();
-            triggerBackgroundSync(); // Automatically pushes state to Google Sheet if auto-sync is configured.
+            triggerBackgroundSheetsSync();
 
             if (activeTabId === 'dashboard') {
                 renderAllCharts();
@@ -1680,7 +1659,6 @@ function doGet(e) {
             }
         }
 
-        // Save simulated SKU Code
         function handleSKUSubmit(event) {
             event.preventDefault();
             const code = document.getElementById('sku-code').value.toUpperCase();
@@ -1689,13 +1667,13 @@ function doGet(e) {
             const reserved = parseInt(document.getElementById('sku-reserved').value);
 
             if (mockSKUs.some(s => s.code === code)) {
-                showToast("This SKU code already exists in your inventory!", "error");
+                showToast("SKU already exists.", "error");
                 return;
             }
 
             mockSKUs.push({ code, name, stock, reserved });
             closeSKUModal();
-            showToast(`Added SKU ${code} successfully!`, "success");
+            showToast(`SKU ${code} successfully registered!`, "success");
             renderSKUTable();
         }
 
@@ -1714,7 +1692,7 @@ function doGet(e) {
             stepsContainer.innerHTML = '';
 
             let currentStepIdx = steps.indexOf(req.status);
-            if (req.status === "B2B Uploaded") currentStepIdx = 2; // Treat same as Ops Approved for visual simplicity
+            if (req.status === "B2B Uploaded") currentStepIdx = 2; 
             if (req.status === "Ops Denied") currentStepIdx = -1;
 
             steps.forEach((step, idx) => {
@@ -1732,7 +1710,6 @@ function doGet(e) {
                 `;
             });
 
-            // Action Desk controls based on current workflow status
             const actionsPanel = document.getElementById('detail-actions-panel');
             actionsPanel.innerHTML = '';
 
@@ -1770,7 +1747,7 @@ function doGet(e) {
                     </button>
                 `;
             } else {
-                actionsPanel.innerHTML = `<p class="text-xs font-semibold text-slate-400 italic">No further workflow actions are required for this step.</p>`;
+                actionsPanel.innerHTML = `<p class="text-xs font-semibold text-slate-400 italic">No further actions required.</p>`;
             }
 
             document.getElementById('modal-detail').classList.remove('hidden');
@@ -1780,13 +1757,16 @@ function doGet(e) {
             document.getElementById('modal-detail').classList.add('hidden');
         }
 
-        // Progress state machine transitions
-        function updateRequestStatus(requestId, nextStatus) {
+        async function updateRequestStatus(requestId, nextStatus) {
             const req = mockRequests.find(r => r.id === requestId);
             if (req) {
                 req.status = nextStatus;
+                
+                // Write transition event live to real-time sync
+                await writeRequestToCloud(req);
+
                 closeDetailModal();
-                showToast(`Request ${requestId} transitioned to status: ${nextStatus}!`, "success");
+                showToast(`Request ${requestId} moved to ${nextStatus}!`, "success");
                 
                 if (nextStatus === "Ops Denied") {
                     const skuItem = mockSKUs.find(s => s.code === req.sku);
@@ -1796,7 +1776,7 @@ function doGet(e) {
                 }
 
                 updateAllMetrics();
-                triggerBackgroundSync(); // Automatically pushes state to Google Sheet if auto-sync is configured.
+                triggerBackgroundSheetsSync();
 
                 if (activeTabId === 'dashboard') {
                     renderAllCharts();
@@ -1806,7 +1786,6 @@ function doGet(e) {
             }
         }
 
-        // Refresh dashboard statistics and trigger brief loading state
         function refreshDashboard() {
             const refreshBtn = document.getElementById('btn-refresh');
             const refreshIcon = document.getElementById('icon-refresh');
@@ -1814,7 +1793,7 @@ function doGet(e) {
             refreshBtn.disabled = true;
             refreshIcon.classList.add('animate-spin');
 
-            setTimeout(() => {
+            setTimeout(async () => {
                 refreshBtn.disabled = false;
                 refreshIcon.classList.remove('animate-spin');
 
@@ -1823,22 +1802,26 @@ function doGet(e) {
                 const randomSKU = mockSKUs[Math.floor(Math.random() * mockSKUs.length)];
                 const randomId = `REQ-${1001 + mockRequests.length}`;
 
-                mockRequests.unshift({
+                const freshReq = {
                     id: randomId,
                     email: randomMail,
                     sku: randomSKU.code,
                     qty: Math.floor(Math.random() * 2) + 1,
-                    status: "ZM Approved", // Put into awaiting ops for easy testing
+                    status: "ZM Approved", 
                     courier: "Bluedart",
                     date: "12 Jun 2026",
                     turnaround: "2.5h"
-                });
+                };
 
+                mockRequests.unshift(freshReq);
                 randomSKU.reserved += 1;
 
-                showToast(`New incoming alert! Sample ${randomId} was received and added to 'Awaiting Ops'.`, "info");
+                // Fire to realtime engine
+                await writeRequestToCloud(freshReq);
+
+                showToast(`Sample request ${randomId} punched live to cloud database!`, "info");
                 updateAllMetrics();
-                triggerBackgroundSync(); // Automatically pushes state to Google Sheet if auto-sync is configured.
+                triggerBackgroundSheetsSync();
                 
                 if (activeTabId === 'dashboard') {
                     renderAllCharts();
@@ -1848,9 +1831,113 @@ function doGet(e) {
             }, 800);
         }
 
+        // =========================================================================
+        // SPREADSHEET AUTOMATION & EXCEL INTEGRATION
+        // =========================================================================
+
+        function openSheetsModal() {
+            document.getElementById('modal-sheets').classList.remove('hidden');
+        }
+
+        function closeSheetsModal() {
+            document.getElementById('modal-sheets').classList.add('hidden');
+        }
+
+        function saveCloudConfig() {
+            const urlVal = document.getElementById('sheet-webhook-url').value.trim();
+            const autoSyncVal = document.getElementById('sheet-auto-sync').checked;
+            const firebaseVal = document.getElementById('firebase-config-json').value.trim();
+
+            localStorage.setItem('pw_k8_sheet_url', urlVal);
+            localStorage.setItem('pw_k8_sheet_auto_sync', autoSyncVal ? 'true' : 'false');
+            localStorage.setItem('pw_k8_firebase_config', firebaseVal);
+
+            updateSyncIndicatorBadge();
+        }
+
+        function updateSyncIndicatorBadge() {
+            const badge = document.getElementById('sync-active-badge');
+            const savedUrl = localStorage.getItem('pw_k8_sheet_url');
+            const savedAutoSync = localStorage.getItem('pw_k8_sheet_auto_sync') === 'true';
+
+            if (savedUrl && savedAutoSync) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function triggerBackgroundSheetsSync() {
+            const savedUrl = localStorage.getItem('pw_k8_sheet_url');
+            const savedAutoSync = localStorage.getItem('pw_k8_sheet_auto_sync') === 'true';
+
+            if (savedUrl && savedAutoSync) {
+                fetch(savedUrl, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(mockRequests)
+                }).then(() => {
+                    showToast("Google Sheets synchronization completed.", "success");
+                }).catch(() => {
+                    showToast("Silent spreadsheet auto-sync failed.", "error");
+                });
+            }
+        }
+
+        function pushDataToSheets() {
+            const sheetUrl = document.getElementById('sheet-webhook-url').value.trim();
+            if (!sheetUrl) {
+                showToast("Provide your deployment script web app URL.", "error");
+                return;
+            }
+
+            showToast("Pushing live records...", "info");
+            fetch(sheetUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(mockRequests)
+            })
+            .then(() => {
+                showToast("Spreadsheet update successfully posted!", "success");
+            })
+            .catch(err => {
+                showToast("Connection to Google Sheet failed.", "error");
+            });
+        }
+
+        function pullDataFromSheets() {
+            const sheetUrl = document.getElementById('sheet-webhook-url').value.trim();
+            if (!sheetUrl) {
+                showToast("Deployment script URL required.", "error");
+                return;
+            }
+
+            showToast("Downloading database...", "info");
+            fetch(sheetUrl)
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) {
+                    mockRequests = data;
+                    updateAllMetrics();
+                    if (activeTabId === 'dashboard') {
+                        renderAllCharts();
+                    } else {
+                        renderRequestsTable(activeTabId);
+                    }
+                    showToast(`Pulled ${data.length} records cleanly from Sheets!`, "success");
+                } else {
+                    showToast("Sheets API parsed empty or formatted incorrectly.", "error");
+                }
+            })
+            .catch(err => {
+                showToast("Could not download sheet. Verify Anyone access permissions.", "error");
+            });
+        }
+
         function exportRequestsToExcel() {
             try {
-                // Formatting data arrays to map cleanly to Excel columns
                 const worksheetData = mockRequests.map(r => ({
                     "Request ID": r.id,
                     "Client Email": r.email,
@@ -1862,23 +1949,18 @@ function doGet(e) {
                     "Average Turnaround": r.turnaround
                 }));
 
-                // Creating a SheetJS Workbook & Worksheet
                 const worksheet = XLSX.utils.json_to_sheet(worksheetData);
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, "Requests");
 
-                // Generating a dynamic filename based on the current timestamp
                 const dateStamp = new Date().toISOString().slice(0, 10);
-                XLSX.writeFile(workbook, `PW_Academy_K8_Orders_${dateStamp}.xlsx`);
-                
-                showToast("Native Excel spreadsheet downloaded successfully!", "success");
+                XLSX.writeFile(workbook, `PW_Academy_K8_CRM_${dateStamp}.xlsx`);
+                showToast("Native Excel spreadsheet downloaded!", "success");
             } catch (err) {
-                console.error("Excel Export Error: ", err);
-                showToast("Failed to compile native Excel export spreadsheet.", "error");
+                showToast("Export engine generation failed.", "error");
             }
         }
 
-        // Triggers the hidden system file chooser input
         function triggerImport() {
             document.getElementById('import-file-input').click();
         }
@@ -1890,75 +1972,63 @@ function doGet(e) {
             const reader = new FileReader();
             const fileName = file.name.toLowerCase();
 
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const textContent = e.target.result;
                     let parsedData = [];
 
                     if (fileName.endsWith('.json')) {
-                        // Handle native JSON restoration file
                         parsedData = JSON.parse(textContent);
                     } else if (fileName.endsWith('.csv')) {
-                        // Handle custom CSV parse routine
                         parsedData = parseCSVToJSON(textContent);
                     } else {
-                        showToast("Unsupported file extension! Please upload a .csv or .json file.", "error");
+                        showToast("File format not supported. Use .csv or .json files.", "error");
                         return;
                     }
 
                     if (Array.isArray(parsedData) && parsedData.length > 0) {
-                        // Validate structural headers schema properties
-                        const hasMinimumRequiredKeys = parsedData.every(item => 
-                            item.id !== undefined && 
-                            item.email !== undefined && 
-                            item.sku !== undefined
-                        );
+                        mockRequests = parsedData.map(item => ({
+                            id: String(item.id),
+                            email: String(item.email),
+                            sku: String(item.sku),
+                            qty: parseInt(item.qty) || 1,
+                            status: String(item.status || 'ZM Approved'),
+                            courier: String(item.courier || 'Bluedart'),
+                            date: String(item.date || '12 Jun 2026'),
+                            turnaround: String(item.turnaround || '1.0h')
+                        }));
 
-                        if (hasMinimumRequiredKeys) {
-                            // Map incoming array into the core CRM database
-                            mockRequests = parsedData.map(item => ({
-                                id: String(item.id),
-                                email: String(item.email),
-                                sku: String(item.sku),
-                                qty: parseInt(item.qty) || 1,
-                                status: String(item.status || 'ZM Approved'),
-                                courier: String(item.courier || 'Bluedart'),
-                                date: String(item.date || '12 Jun 2026'),
-                                turnaround: String(item.turnaround || '1.0h')
-                            }));
-
-                            // Re-calculate UI values and dynamic graphs across the active workspace
-                            updateAllMetrics();
-                            triggerBackgroundSync(); // Push parsed results to Google sheet if configuration permits
-                            if (activeTabId === 'dashboard') {
-                                renderAllCharts();
-                            } else {
-                                renderRequestsTable(activeTabId);
+                        // Auto-populate imports into cloud
+                        if (window.firebaseEnabled) {
+                            for (let r of mockRequests) {
+                                await writeRequestToCloud(r);
                             }
-                            showToast(`Successfully uploaded and restored ${mockRequests.length} records!`, "success");
-                        } else {
-                            showToast("Validation failed: Mismatched row columns detected.", "error");
                         }
+
+                        updateAllMetrics();
+                        triggerBackgroundSheetsSync();
+                        if (activeTabId === 'dashboard') {
+                            renderAllCharts();
+                        } else {
+                            renderRequestsTable(activeTabId);
+                        }
+                        showToast(`Punched and synced ${mockRequests.length} records!`, "success");
                     } else {
-                        showToast("Parsing failed: Spreadsheet is empty or formatted incorrectly.", "error");
+                        showToast("Parser validation failed: Empty rows.", "error");
                     }
                 } catch (err) {
-                    console.error(err);
-                    showToast("Error parsing file. Check syntax schema layout.", "error");
+                    showToast("Parsing failed.", "error");
                 }
             };
 
             reader.readAsText(file);
-            // Reset input target value so operators can re-upload identical files if required
             event.target.value = '';
         }
 
-        // Parses flat CSV table strings to clean CRM JSON lists
         function parseCSVToJSON(csvText) {
             const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
             if (rows.length < 2) return [];
 
-            // Detect headers and sanitize quotes
             const headers = rows[0].split(',').map(header => header.replace(/^["']|["']$/g, '').trim());
             const list = [];
 
@@ -1968,7 +2038,6 @@ function doGet(e) {
                 let isInsideQuotes = false;
                 let buffer = "";
 
-                // Parsing quotes and commas cleanly
                 for (let charIndex = 0; charIndex < currentLine.length; charIndex++) {
                     const char = currentLine[charIndex];
                     if (char === '"') {
@@ -1982,7 +2051,6 @@ function doGet(e) {
                 }
                 values.push(buffer.trim());
 
-                // Skip partial empty records
                 if (values.length < headers.length) continue;
 
                 let rowObject = {};
@@ -1990,7 +2058,6 @@ function doGet(e) {
                     let cellVal = (values[colIndex] || "").replace(/^["']|["']$/g, '').trim();
                     let canonicalHeader = header.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-                    // Map various potential CSV headers to correct properties
                     if (canonicalHeader.includes("id") || canonicalHeader.includes("request")) {
                         rowObject.id = cellVal;
                     } else if (canonicalHeader.includes("email") || canonicalHeader.includes("client")) {
@@ -2017,148 +2084,22 @@ function doGet(e) {
             return list;
         }
 
-        // =========================================================================
-        // AUTOMATED GOOGLE SHEETS INTEGRATION LOGIC
-        // =========================================================================
-
-        // Open sheets Modal
-        function openSheetsModal() {
-            document.getElementById('modal-sheets').classList.remove('hidden');
-        }
-
-        // Close sheets Modal
-        function closeSheetsModal() {
-            document.getElementById('modal-sheets').classList.add('hidden');
-        }
-
-        // Load configured Sheets Webhook URL and toggle status from storage
-        function loadSheetsConfig() {
+        // Configuration setup initializations
+        function loadSavedLocalConfigs() {
             const savedUrl = localStorage.getItem('pw_k8_sheet_url') || '';
             const savedAutoSync = localStorage.getItem('pw_k8_sheet_auto_sync') === 'true';
+            const savedFirebase = localStorage.getItem('pw_k8_firebase_config') || '';
 
             document.getElementById('sheet-webhook-url').value = savedUrl;
             document.getElementById('sheet-auto-sync').checked = savedAutoSync;
+            document.getElementById('firebase-config-json').value = savedFirebase;
 
             updateSyncIndicatorBadge();
         }
 
-        // Save configured input preferences inside localStorage
-        function saveSheetsConfig() {
-            const urlVal = document.getElementById('sheet-webhook-url').value.trim();
-            const autoSyncVal = document.getElementById('sheet-auto-sync').checked;
-
-            localStorage.setItem('pw_k8_sheet_url', urlVal);
-            localStorage.setItem('pw_k8_sheet_auto_sync', autoSyncVal ? 'true' : 'false');
-
-            updateSyncIndicatorBadge();
-        }
-
-        // Update active sync indicators across top operational bar
-        function updateSyncIndicatorBadge() {
-            const badge = document.getElementById('sync-active-badge');
-            const savedUrl = localStorage.getItem('pw_k8_sheet_url');
-            const savedAutoSync = localStorage.getItem('pw_k8_sheet_auto_sync') === 'true';
-
-            if (savedUrl && savedAutoSync) {
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-
-        // Copy apps script snippet to device clipboard safely
-        function copyAppsScriptCode() {
-            const textArea = document.getElementById('apps-script-code-block');
-            textArea.select();
-            document.execCommand('copy');
-            showToast("Google Apps Script code copied to clipboard!", "success");
-        }
-
-        // Silent background trigger on metrics changes
-        function triggerBackgroundSync() {
-            const savedUrl = localStorage.getItem('pw_k8_sheet_url');
-            const savedAutoSync = localStorage.getItem('pw_k8_sheet_auto_sync') === 'true';
-
-            if (savedUrl && savedAutoSync) {
-                // Execute background push
-                fetch(savedUrl, {
-                    method: 'POST',
-                    mode: 'no-cors', // Avoid complex preflight checks inside isolated client sandbox
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(mockRequests)
-                }).then(() => {
-                    showToast("Google Sheets auto-synced successfully.", "success");
-                }).catch(() => {
-                    showToast("Silent Sheets auto-sync failed. Verify deployment URL.", "error");
-                });
-            }
-        }
-
-        // Push current database to Google sheets manually
-        function pushDataToSheets() {
-            const sheetUrl = document.getElementById('sheet-webhook-url').value.trim();
-            if (!sheetUrl) {
-                showToast("Please provide a valid Google Apps Script Web App URL first.", "error");
-                return;
-            }
-
-            showToast("Pushing live order records to Google Sheets...", "info");
-
-            fetch(sheetUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(mockRequests)
-            })
-            .then(() => {
-                showToast("Google Sheet updated! Checked and successfully synced.", "success");
-            })
-            .catch(err => {
-                showToast("Failed to write to Google Sheets. Verify Web App URL is correctly configured.", "error");
-                console.error(err);
-            });
-        }
-
-        // Pull spreadsheet rows to CRM manually
-        function pullDataFromSheets() {
-            const sheetUrl = document.getElementById('sheet-webhook-url').value.trim();
-            if (!sheetUrl) {
-                showToast("Please provide a valid Google Apps Script Web App URL first.", "error");
-                return;
-            }
-
-            showToast("Pulling order data logs from Google Sheets...", "info");
-
-            fetch(sheetUrl)
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) {
-                    if (data.length > 0) {
-                        mockRequests = data;
-                        updateAllMetrics();
-                        if (activeTabId === 'dashboard') {
-                            renderAllCharts();
-                        } else {
-                            renderRequestsTable(activeTabId);
-                        }
-                        showToast(`Successfully restored ${data.length} records directly from Google Sheets!`, "success");
-                    } else {
-                        showToast("Spreadsheet is currently empty. Run a Push command first.", "error");
-                    }
-                } else {
-                    showToast("Validation failed: Returned payload is structured incorrectly.", "error");
-                }
-            })
-            .catch(err => {
-                showToast("Unable to fetch sheet. Ensure Web App is configured with 'Anyone' access level.", "error");
-                console.error(err);
-            });
-        }
-
-        // Initializing view on startup
-        window.onload = function() {
-            loadSheetsConfig(); // Loads Google Sheet settings configurations
-        }
+        window.addEventListener('load', () => {
+            loadSavedLocalConfigs();
+        });
     </script>
 </body>
 </html>
