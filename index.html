@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PW Academy K8 - Ops Dashboard</title>
+    
+    <!-- External UI Libraries & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for exporting real Excel (.xlsx) files natively in browser -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Pulse & Slow animation utilities */
+        @keyframes spin-slow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spin-slow 8s linear infinite;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 flex flex-col overflow-hidden">
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- LOGIN SCREEN WRAPPER -->
+    <div id="auth-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 border border-slate-100 flex flex-col relative overflow-hidden">
+            
+            <!-- Branding Accents -->
+            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500"></div>
+
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-extrabold text-2xl shadow-xl shadow-blue-200 mx-auto mb-4">
+                    K8
+                </div>
+                <h1 class="text-2xl font-extrabold text-slate-950">PW Academy K8</h1>
+                <p class="text-sm text-slate-500 mt-1 font-medium">Ops Dashboard Administration Desk</p>
+            </div>
+
+            <!-- STEP 1: Enter Email ID -->
+            <div id="auth-step-email" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Corporate Email Address</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="email" id="auth-email-input" placeholder="username@pw.live" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-blue-600 focus:bg-white rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                    </div>
+                </div>
+
+                <button onclick="sendOTPCode()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-100 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                    <span>Send Verification Code</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+
+                <p class="text-[11px] text-center text-slate-400 font-medium">By signing in, you access restricted internal resources. Active operations are continuously logged.</p>
+            </div>
+
+            <!-- STEP 2: Enter Verification OTP -->
+            <div id="auth-step-otp" class="hidden space-y-6">
+                <div class="text-center">
+                    <p class="text-xs font-semibold text-slate-500">We sent a 4-digit code to</p>
+                    <p id="auth-otp-target" class="text-sm font-bold text-slate-900 mt-0.5 truncate">yourname@pw.live</p>
+                    <button onclick="backToEmailStep()" class="text-xs text-blue-600 hover:underline font-semibold mt-1">Change Email</button>
+                </div>
+
+                <div>
+                    <label class="block text-center text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Verification Code</label>
+                    <div class="flex justify-center gap-3">
+                        <input type="text" maxlength="1" oninput="handleOtpInput(this, 1)" onkeydown="handleOtpKeydown(event, 1)" id="otp-1" class="w-14 h-14 bg-slate-50 border border-slate-200 rounded-xl text-center font-extrabold text-xl focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                        <input type="text" maxlength="1" oninput="handleOtpInput(this, 2)" onkeydown="handleOtpKeydown(event, 2)" id="otp-2" class="w-14 h-14 bg-slate-50 border border-slate-200 rounded-xl text-center font-extrabold text-xl focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                        <input type="text" maxlength="1" oninput="handleOtpInput(this, 3)" onkeydown="handleOtpKeydown(event, 3)" id="otp-3" class="w-14 h-14 bg-slate-50 border border-slate-200 rounded-xl text-center font-extrabold text-xl focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                        <input type="text" maxlength="1" oninput="handleOtpInput(this, 4)" onkeydown="handleOtpKeydown(event, 4)" id="otp-4" class="w-14 h-14 bg-slate-50 border border-slate-200 rounded-xl text-center font-extrabold text-xl focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all">
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center gap-2">
+                    <span id="otp-timer-lbl" class="text-xs font-semibold text-slate-400">Resend code in <strong id="otp-countdown" class="text-slate-600">60s</strong></span>
+                    <button id="otp-resend-btn" onclick="sendOTPCode()" disabled class="text-xs text-blue-600 hover:underline font-bold disabled:text-slate-300 disabled:no-underline transition-all">Resend Verification Code</button>
+                </div>
+
+                <button onclick="verifyOTPCode()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-100 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-shield-check"></i>
+                    <span>Verify and Access Dashboard</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app-workspace" class="flex h-full w-full overflow-hidden opacity-0 transition-opacity duration-300 pointer-events-none">
+        
+        <!-- Sidebar container -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col transition-transform transform -translate-x-full lg:translate-x-0 lg:static lg:inset-auto">
+            
+            <!-- Sidebar Header -->
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                        K8
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-slate-900 leading-tight">PW Academy K8</h1>
+                        <p class="text-xs text-slate-500 font-medium">Ops Dashboard</p>
+                    </div>
+                </div>
+                <!-- Close Mobile Sidebar Button -->
+                <button onclick="toggleSidebar()" class="lg:hidden text-slate-500 hover:text-slate-800 focus:outline-none">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Sidebar Navigation Links -->
+            <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+                
+                <!-- Main Core Section -->
+                <div>
+                    <ul class="space-y-1">
+                        <li>
+                            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="sidebar-tab active-tab w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all">
+                                <i class="fa-solid fa-chart-pie w-5 text-center text-blue-600"></i>
+                                <span>Dashboard</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Inventory Section -->
+                <div>
+                    <div class="flex items-center justify-between px-3 mb-2 text-xs font-bold text-slate-400 tracking-wider uppercase">
+                        <span>Inventory</span>
+                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                    </div>
+                    <ul class="space-y-1">
+                        <li>
+                            <button onclick="switchTab('sku-list')" id="tab-sku-list" class="sidebar-tab w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                                <i class="fa-solid fa-boxes-stacked w-5 text-center text-slate-400"></i>
+                                <span>SKU List</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Sample Requests Section -->
+                <div>
+                    <div class="flex items-center justify-between px-3 mb-2 text-xs font-bold text-slate-400 tracking-wider uppercase">
+                        <span>Sample Requests</span>
+                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                    </div>
+                    <ul class="space-y-1">
+                        <li>
+                            <button onclick="switchTab('all-requests')" id="tab-all-requests" class="sidebar-tab w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-list-check w-5 text-center text-slate-400"></i>
+                                    <span>All Requests</span>
+                                </div>
+                                <span id="badge-all-requests" class="bg-slate-100 text-slate-600 font-semibold text-xs px-2 py-0.5 rounded-full">24</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="switchTab('ops-approval')" id="tab-ops-approval" class="sidebar-tab w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-user-check w-5 text-center text-slate-400"></i>
+                                    <span>Ops Approval</span>
+                                </div>
+                                <span id="badge-ops-approval" class="bg-amber-100 text-amber-700 font-semibold text-xs px-2 py-0.5 rounded-full hidden">0</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="switchTab('ops-denied')" id="tab-ops-denied" class="sidebar-tab w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-user-xmark w-5 text-center text-slate-400"></i>
+                                    <span>Ops Denied</span>
+                                </div>
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="switchTab('order-processing')" id="tab-order-processing" class="sidebar-tab w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-gear w-5 text-center text-slate-400"></i>
+                                    <span>Order Processing</span>
+                                </div>
+                                <span id="badge-processing" class="bg-orange-500 text-white font-bold text-xs px-2 py-0.5 rounded-full">1</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="switchTab('b2b-uploaded')" id="tab-b2b-uploaded" class="sidebar-tab w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-cloud-arrow-up w-5 text-center text-slate-400"></i>
+                                    <span>B2B App Uploaded</span>
+                                </div>
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="switchTab('dispatched')" id="tab-dispatched" class="sidebar-tab w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-truck-fast w-5 text-center text-slate-400"></i>
+                                    <span>Dispatched</span>
+                                </div>
+                                <span id="badge-dispatched" class="bg-slate-200 text-slate-700 font-semibold text-xs px-2 py-0.5 rounded-full">4</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="switchTab('delivered')" id="tab-delivered" class="sidebar-tab w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-circle-check w-5 text-center text-slate-400"></i>
+                                    <span>Delivered</span>
+                                </div>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Employee Records Section -->
+                <div>
+                    <div class="flex items-center justify-between px-3 mb-2 text-xs font-bold text-slate-400 tracking-wider uppercase">
+                        <span>Employee Records</span>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar User Profile Footer -->
+            <div class="p-4 border-t border-slate-200 bg-slate-50">
+                <div class="flex items-center justify-between">
+                    <div class="min-w-0 flex-1 mr-2">
+                        <p id="user-display-email" class="text-sm font-bold text-slate-800 truncate" title="rohit.kumar22@pw.live">rohit.kumar22@pw.live</p>
+                        <p class="text-[11px] font-bold text-slate-400 tracking-wider">OPS AGENT</p>
+                    </div>
+                    <button onclick="handleSignOut()" class="text-xs text-slate-500 hover:text-red-600 font-bold transition-colors shrink-0">
+                        Sign out
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Sidebar overlay for mobile device viewing -->
+        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden"></div>
+
+        <!-- Main Content Section -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            
+            <!-- Top bar with Operational status & Action buttons -->
+            <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleSidebar()" class="lg:hidden text-slate-600 p-1 hover:bg-slate-100 rounded">
+                            <i class="fa-solid fa-bars text-xl"></i>
+                        </button>
+                        <h2 id="main-view-title" class="text-2xl font-bold text-slate-950">Dashboard</h2>
+                    </div>
+                    <p id="main-view-subtitle" class="text-sm text-slate-500 mt-0.5">Live operational overview &bull; Friday, 12 June 2026</p>
+                </div>
+
+                <!-- Live Control Toolbar -->
+                <div class="flex items-center gap-2 self-end sm:self-auto">
+                    <!-- Quick action: Google Sheets Automation -->
+                    <button onclick="openSheetsModal()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2 rounded-lg shadow-sm transition-all transform active:scale-95">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Google Sheet Sync</span>
+                        <span id="sync-active-badge" class="w-2.5 h-2.5 rounded-full bg-emerald-300 border border-emerald-600 hidden animate-pulse"></span>
+                    </button>
+
+                    <!-- Quick action: Simulate Order request -->
+                    <button onclick="openSimulationModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-4 py-2 rounded-lg shadow-sm transition-all transform active:scale-95">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>New Sample Request</span>
+                    </button>
+                    <!-- Refresh dashboard metrics button -->
+                    <button onclick="refreshDashboard()" id="btn-refresh" class="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-sm px-4 py-2 rounded-lg shadow-sm transition-all transform active:scale-95">
+                        <i id="icon-refresh" class="fa-arrows-rotate fa-solid"></i>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Active View viewport container -->
+            <div class="flex-1 overflow-y-auto p-6 bg-[#f8fafc]" id="viewport-content">
+                
+                <!-- DASHBOARD TAB VIEW -->
+                <div id="view-dashboard" class="space-y-6">
+                    
+                    <!-- Pipeline Overview Section -->
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 onclick="navigateToAllOrders()" class="text-xs font-bold text-slate-400 tracking-wider uppercase cursor-pointer hover:text-blue-600 hover:underline transition-all flex items-center gap-1.5 group">
+                                Pipeline Overview 
+                                <i class="fa-solid fa-arrow-right-long text-[10px] opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all"></i>
+                            </h3>
+                            <span class="text-[10px] bg-blue-50 text-blue-600 font-bold px-2 py-0.5 rounded-md">Click any parameter card to drill down</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            <!-- Total Orders Card -->
+                            <div onclick="navigateToAllOrders()" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md hover:border-blue-500 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-200 group">
+                                <span class="text-xs font-bold text-slate-400 tracking-wider uppercase group-hover:text-blue-600 transition-colors">Total Orders</span>
+                                <div class="mt-2">
+                                    <span id="metric-total-orders" class="text-3xl font-extrabold text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">65</span>
+                                </div>
+                                <span class="text-xs text-slate-400 mt-1 font-medium group-hover:text-blue-400 transition-colors">View all history &rarr;</span>
+                            </div>
+
+                            <!-- Awaiting Ops Card -->
+                            <div onclick="switchTab('ops-approval')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md hover:border-amber-500 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-200 group">
+                                <span class="text-xs font-bold text-slate-400 tracking-wider uppercase group-hover:text-amber-600 transition-colors">Awaiting Ops</span>
+                                <div class="mt-2">
+                                    <span id="metric-awaiting-ops" class="text-3xl font-extrabold text-blue-600 tracking-tight group-hover:text-amber-600 transition-colors">0</span>
+                                </div>
+                                <span class="text-xs text-slate-400 mt-1 font-medium group-hover:text-amber-400/80 transition-colors">ZM Approved &rarr;</span>
+                            </div>
+
+                            <!-- Processing Card -->
+                            <div onclick="switchTab('order-processing')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md hover:border-purple-500 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-200 group">
+                                <span class="text-xs font-bold text-slate-400 tracking-wider uppercase group-hover:text-purple-600 transition-colors">Processing</span>
+                                <div class="mt-2">
+                                    <span id="metric-processing" class="text-3xl font-extrabold text-purple-600 tracking-tight group-hover:text-purple-600 transition-colors">1</span>
+                                </div>
+                                <span class="text-xs text-slate-400 mt-1 font-medium group-hover:text-purple-400/80 transition-colors">Ops Approved &rarr;</span>
+                            </div>
+
+                            <!-- Dispatched Card -->
+                            <div onclick="switchTab('dispatched')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md hover:border-orange-500 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-200 group">
+                                <span class="text-xs font-bold text-slate-400 tracking-wider uppercase group-hover:text-orange-600 transition-colors">Dispatched</span>
+                                <div class="mt-2">
+                                    <span id="metric-dispatched" class="text-3xl font-extrabold text-orange-500 tracking-tight group-hover:text-orange-600 transition-colors">4</span>
+                                </div>
+                                <span class="text-xs text-slate-400 mt-1 font-medium group-hover:text-orange-400/80 transition-colors">In transit &rarr;</span>
+                            </div>
+
+                            <!-- Delivered Card -->
+                            <div onclick="switchTab('delivered')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md hover:border-emerald-500 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-200 col-span-2 md:col-span-1 group">
+                                <span class="text-xs font-bold text-slate-400 tracking-wider uppercase group-hover:text-emerald-600 transition-colors">Delivered</span>
+                                <div class="mt-2">
+                                    <span id="metric-delivered" class="text-3xl font-extrabold text-emerald-600 tracking-tight group-hover:text-emerald-600 transition-colors">41</span>
+                                </div>
+                                <span class="text-xs text-slate-400 mt-1 font-medium group-hover:text-emerald-400/80 transition-colors">Completed &rarr;</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Turnaround Time Heatmaps Section -->
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase mb-3">Turnaround Time (Avg Across All Orders) &bull; Click to Inspect</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            
+                            <!-- Ops Approval Heatmap -->
+                            <div onclick="switchTab('ops-approval')" class="bg-amber-50/50 border border-amber-200 p-5 rounded-2xl flex flex-col justify-between relative hover:shadow-md hover:border-amber-400 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all">
+                                <span class="text-xs font-bold text-amber-800 tracking-wide uppercase">Ops Approval</span>
+                                <div class="my-3">
+                                    <span class="text-3xl font-extrabold text-amber-900 tracking-tight">21.9h</span>
+                                </div>
+                                <div class="text-[11px] text-amber-700/80 font-medium">
+                                    ZM Approved &rarr; Ops Approved
+                                </div>
+                                <div class="mt-3 flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1 bg-amber-100/80 text-amber-800 text-[10px] font-bold px-2 py-1 rounded-full uppercase">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Moderate
+                                    </span>
+                                    <span class="text-[10px] text-amber-600 font-semibold underline">Inspect queue</span>
+                                </div>
+                            </div>
+
+                            <!-- Order Processing Heatmap -->
+                            <div onclick="switchTab('order-processing')" class="bg-emerald-50/50 border border-emerald-200 p-5 rounded-2xl flex flex-col justify-between relative hover:shadow-md hover:border-emerald-400 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all">
+                                <span class="text-xs font-bold text-emerald-800 tracking-wide uppercase">Order Processing</span>
+                                <div class="my-3">
+                                    <span class="text-3xl font-extrabold text-emerald-900 tracking-tight">2.9h</span>
+                                </div>
+                                <div class="text-[11px] text-emerald-700/80 font-medium">
+                                    Ops Approved &rarr; B2B Upload
+                                </div>
+                                <div class="mt-3 flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1 bg-emerald-100/80 text-emerald-800 text-[10px] font-bold px-2 py-1 rounded-full uppercase">
+                                        <i class="fa-solid fa-circle-check"></i> On track
+                                    </span>
+                                    <span class="text-[10px] text-emerald-600 font-semibold underline">Inspect queue</span>
+                                end -->
+                            </div>
+
+                            <!-- B2B to Dispatch Heatmap -->
+                            <div onclick="switchTab('b2b-uploaded')" class="bg-rose-50/50 border border-rose-200 p-5 rounded-2xl flex flex-col justify-between relative hover:shadow-md hover:border-rose-400 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all">
+                                <span class="text-xs font-bold text-rose-800 tracking-wide uppercase">B2B &rarr; Dispatch</span>
+                                <div class="my-3">
+                                    <span class="text-3xl font-extrabold text-rose-900 tracking-tight">58.8h</span>
+                                </div>
+                                <div class="text-[11px] text-rose-700/80 font-medium">
+                                    B2B Uploaded &rarr; Dispatched
+                                </div>
+                                <div class="mt-3 flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1 bg-rose-100/80 text-rose-800 text-[10px] font-bold px-2 py-1 rounded-full uppercase">
+                                        <i class="fa-solid fa-circle-xmark"></i> Delayed
+                                    </span>
+                                    <span class="text-[10px] text-rose-600 font-semibold underline">Inspect queue</span>
+                                </div>
+                            </div>
+
+                            <!-- Dispatch to Deliver Heatmap -->
+                            <div onclick="switchTab('dispatched')" class="bg-rose-50/50 border border-rose-200 p-5 rounded-2xl flex flex-col justify-between relative hover:shadow-md hover:border-rose-400 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all">
+                                <span class="text-xs font-bold text-rose-800 tracking-wide uppercase">Dispatch &rarr; Deliver</span>
+                                <div class="my-3">
+                                    <span class="text-3xl font-extrabold text-rose-900 tracking-tight">114.5h</span>
+                                </div>
+                                <div class="text-[11px] text-rose-700/80 font-medium">
+                                    Dispatched &rarr; Delivered
+                                </div>
+                                <div class="mt-3 flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1 bg-rose-100/80 text-rose-800 text-[10px] font-bold px-2 py-1 rounded-full uppercase">
+                                        <i class="fa-solid fa-circle-xmark"></i> Delayed
+                                    </span>
+                                    <span class="text-[10px] text-rose-600 font-semibold underline">Inspect queue</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Interactive Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Orders By Status Doughnut Chart Card -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col h-[380px] relative">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase">Orders by Status</h4>
+                                <span class="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded">Interactive slices</span>
+                            </div>
+                            <div class="flex-1 relative flex items-center justify-center">
+                                <div class="w-full max-w-[200px] h-full max-h-[200px]">
+                                    <canvas id="chart-orders-status"></canvas>
+                                </div>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-4">
+                                    <span id="chart-orders-center-num" class="text-3xl font-black text-slate-800">63</span>
+                                    <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Total</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submissions Last 7 Days Column Chart Card -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col h-[380px]">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase">Submissions &mdash; Last 7 Days</h4>
+                                <span class="text-xs text-slate-400 font-semibold">Live Feed</span>
+                            </div>
+                            <div class="flex-1 relative">
+                                <canvas id="chart-submissions"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Courier Split Doughnut Chart Card -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col h-[380px]">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase">Courier Split</h4>
+                                <span class="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded">Filter by Carrier</span>
+                            </div>
+                            <div class="flex-1 relative flex items-center justify-center">
+                                <div class="w-full max-w-[200px] h-full max-h-[200px]">
+                                    <canvas id="chart-courier-split"></canvas>
+                                </div>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-4">
+                                    <span id="chart-couriers-center-num" class="text-3xl font-black text-slate-800">45</span>
+                                    <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Shipments</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- SKU LIST VIEW -->
+                <div id="view-sku-list" class="hidden space-y-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <!-- Table header utilities -->
+                        <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-50/50">
+                            <div class="relative flex-1 max-w-md">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <input type="text" id="sku-search" oninput="searchSKUs()" placeholder="Search by SKU name, code, or brand..." class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="openAddSKUModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-4 py-2 rounded-lg transition-all transform active:scale-95">
+                                    <i class="fa-solid fa-plus"></i> Add New SKU
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-xs font-semibold text-slate-500 bg-slate-50 uppercase tracking-wider">
+                                        <th class="p-4 pl-6">SKU Code</th>
+                                        <th class="p-4">Product Name</th>
+                                        <th class="p-4">In Stock</th>
+                                        <th class="p-4">Reserved</th>
+                                        <th class="p-4">Status</th>
+                                        <th class="p-4 pr-6 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sku-table-body" class="divide-y divide-slate-100 text-sm font-medium">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SAMPLE REQUESTS TABLE VIEW -->
+                <div id="view-requests" class="hidden space-y-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        
+                        <!-- Table and Action Toolbar -->
+                        <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-50/50">
+                            <!-- Toggle scope segments -->
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Show:</span>
+                                <div class="inline-flex p-1 bg-slate-200/60 rounded-xl bg-slate-100">
+                                    <button onclick="changeRequestsScope('active')" id="scope-btn-active" class="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-sm transition-all duration-200">
+                                        Active Pipelines (<span id="scope-count-active">24</span>)
+                                    </button>
+                                    <button onclick="changeRequestsScope('all')" id="scope-btn-all" class="px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all duration-200">
+                                        All Orders (<span id="scope-count-all">65</span>)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="relative flex-1 max-w-md">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <input type="text" id="request-search" oninput="searchRequests()" placeholder="Search requests (ID, client, SKU name)..." class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                            </div>
+                            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                                <select id="request-filter-courier" onchange="filterRequests()" class="bg-white border border-slate-300 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+                                    <option value="all">All Couriers</option>
+                                    <option value="Bluedart">Bluedart</option>
+                                    <option value="Delhivery">Delhivery</option>
+                                    <option value="Expressway">Expressway</option>
+                                </select>
+                                <button onclick="clearAllFilters()" class="text-xs text-slate-500 hover:text-blue-600 font-bold px-2 py-1 transition-colors">
+                                    Reset
+                                </button>
+                                
+                                <div class="h-6 w-[1px] bg-slate-200 mx-1 hidden sm:block"></div>
+                                
+                                <!-- Export to Excel (SheetJS Native .xlsx export) -->
+                                <button onclick="exportRequestsToExcel()" title="Download Native Excel Spreadsheet" class="flex items-center gap-1.5 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold px-3 py-2 rounded-lg transition-colors">
+                                    <i class="fa-solid fa-file-excel text-sm"></i>
+                                    <span>Export Excel</span>
+                                </button>
+
+                                <!-- Universal Import Trigger (Supports CSV and JSON file uploads) -->
+                                <button onclick="triggerImport()" title="Upload CSV or JSON file to restore database" class="flex items-center gap-1.5 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold px-3 py-2 rounded-lg transition-colors">
+                                    <i class="fa-solid fa-file-import text-sm"></i>
+                                    <span>Import CSV / JSON</span>
+                                </button>
+                                <input type="file" id="import-file-input" onchange="handleImportFile(event)" class="hidden" accept=".json,.csv">
+                            </div>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-xs font-semibold text-slate-500 bg-slate-50 uppercase tracking-wider">
+                                        <th class="p-4 pl-6">Request ID</th>
+                                        <th class="p-4">Client Email</th>
+                                        <th class="p-4">SKU / Quantity</th>
+                                        <th class="p-4">Status</th>
+                                        <th class="p-4">Courier</th>
+                                        <th class="p-4">Submitted Date</th>
+                                        <th class="p-4 pr-6 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="requests-table-body" class="divide-y divide-slate-100 text-sm font-medium">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- GOOGLE SHEETS SYNC CONTROL CENTER MODAL -->
+    <div id="modal-sheets" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-2xl overflow-hidden transform transition-all scale-95 duration-200 flex flex-col max-h-[90vh]">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
+                <h3 class="font-bold text-slate-900 flex items-center gap-2.5">
+                    <i class="fa-solid fa-file-excel text-emerald-600 text-lg"></i>
+                    <span>Google Sheets Automated Sync Desk</span>
+                </h3>
+                <button onclick="closeSheetsModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body Details -->
+            <div class="p-6 space-y-6 overflow-y-auto">
+                
+                <!-- Quick Credentials Block -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase">1. Connection Endpoint Credentials</h4>
+                    <div class="grid grid-cols-1 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Google Apps Script Web App Deployment URL</label>
+                            <input type="url" id="sheet-webhook-url" oninput="saveSheetsConfig()" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                    
+                    <!-- Auto Sync Toggle -->
+                    <div class="flex items-center justify-between bg-emerald-50/50 border border-emerald-100 p-3.5 rounded-xl">
+                        <div>
+                            <p class="text-sm font-bold text-emerald-950">Enable Real-Time Auto-Syncing</p>
+                            <p class="text-xs text-slate-500">Instantly posts live updates (add/approve/edit/deliver) straight to Google Sheets.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="sheet-auto-sync" onchange="saveSheetsConfig()" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Sync Controls -->
+                <div class="space-y-3 border-t border-slate-100 pt-4">
+                    <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase">2. On-Demand Database Sync Tasks</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="pushDataToSheets()" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-lg shadow-sm transition-all transform active:scale-95">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Push Live Data To Sheet
+                        </button>
+                        <button onclick="pullDataFromSheets()" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-lg shadow-sm transition-all transform active:scale-95">
+                            <i class="fa-solid fa-cloud-arrow-down"></i> Pull Sheet Data to CRM
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Instruction Steps Code Box -->
+                <div class="space-y-3 border-t border-slate-100 pt-4">
+                    <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase">3. Easy Two-Minute Installation Guide</h4>
+                    <div class="bg-slate-900 rounded-xl p-4 text-white text-xs space-y-3 font-medium">
+                        <p class="text-slate-300">Follow these steps to connect your custom Google Sheet:</p>
+                        <ol class="list-decimal pl-4 space-y-1.5 text-slate-400">
+                            <li>Create a new <span class="text-emerald-400 font-bold">Google Sheet</span>.</li>
+                            <li>Go to the menu: <span class="font-bold">Extensions</span> &rarr; <span class="font-bold text-emerald-400">Apps Script</span>.</li>
+                            <li>Delete any existing template script code inside <span class="font-mono">Code.gs</span>.</li>
+                            <li>Copy and paste the entire automation script block provided below.</li>
+                            <li>Click <span class="font-bold">Deploy</span> (top right) &rarr; <span class="font-bold text-emerald-400">New deployment</span>.</li>
+                            <li>Set Select Type to <span class="font-bold">Web app</span>. Change "Who has access" to <span class="font-bold text-emerald-400">Anyone</span>.</li>
+                            <li>Click deploy, authorize permission warnings, and copy the generated <span class="font-bold">Web App URL</span> directly into Box 1 above!</li>
+                        </ol>
+
+                        <!-- Copy Script Action Header -->
+                        <div class="flex items-center justify-between border-t border-slate-800 pt-3">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Copy This Automation Script Code</span>
+                            <button onclick="copyAppsScriptCode()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] px-2.5 py-1 rounded transition-colors uppercase">
+                                <i class="fa-regular fa-copy"></i> Copy Script Code
+                            </button>
+                        </div>
+                        <textarea id="apps-script-code-block" readonly class="w-full bg-slate-950 border border-slate-800 text-[10px] text-slate-400 font-mono p-3 rounded-lg h-32 focus:outline-none">
+function doPost(e) {
+  try {
+    var jsonString = e.postData.contents;
+    var data = JSON.parse(jsonString);
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    
+    // Refresh spreadsheet
+    sheet.clearContents();
+    
+    // Set headers
+    var headers = ["Request ID", "Client Email", "SKU Code", "Quantity", "Status", "Courier", "Date", "Turnaround"];
+    sheet.appendRow(headers);
+    
+    // Append rows
+    for (var i = 0; i < data.length; i++) {
+      var row = [
+        data[i].id,
+        data[i].email,
+        data[i].sku,
+        data[i].qty,
+        data[i].status,
+        data[i].courier,
+        data[i].date,
+        data[i].turnaround
+      ];
+      sheet.appendRow(row);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({status: "success", message: "Synced " + data.length + " records."}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var rows = sheet.getDataRange().getValues();
+    var data = [];
+    
+    if (rows.length > 1) {
+      for (var i = 1; i < rows.length; i++) {
+        data.push({
+          id: rows[i][0],
+          email: rows[i][1],
+          sku: rows[i][2],
+          qty: parseInt(rows[i][3]) || 0,
+          status: rows[i][4],
+          courier: rows[i][5],
+          date: rows[i][6],
+          turnaround: rows[i][7]
+        });
+      }
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify(data))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SIMULATION MODAL: Adding Sample Requests -->
+    <div id="modal-simulation" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-md overflow-hidden transform transition-all scale-95 duration-200">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-blue-600"></i>
+                    <span>Simulate New Sample Request</span>
+                </h3>
+                <button onclick="closeSimulationModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body Form -->
+            <form id="form-simulate-request" onsubmit="handleSimulateSubmit(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Client Email</label>
+                    <input type="email" id="sim-email" required placeholder="name@domain.live" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Select SKU</label>
+                    <select id="sim-sku" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Quantity</label>
+                        <input type="number" id="sim-quantity" min="1" max="100" value="1" required class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Workflow Entry Status</label>
+                        <select id="sim-status" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="ZM Approved">ZM Approved (Awaiting Ops)</option>
+                            <option value="Ops Approved">Ops Approved (Processing)</option>
+                            <option value="B2B Uploaded">B2B Uploaded</option>
+                            <option value="Dispatched">Dispatched</option>
+                            <option value="Delivered">Delivered</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Select Carrier Service</label>
+                    <select id="sim-courier" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="Bluedart">Bluedart Express</option>
+                        <option value="Delhivery">Delhivery Air</option>
+                        <option value="Expressway">Expressway Ground</option>
+                    </select>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeSimulationModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800">Cancel</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-4 py-2 rounded-lg transition-all shadow-md active:scale-95">Create Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SKU CREATION MODAL -->
+    <div id="modal-sku" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-md overflow-hidden transform transition-all scale-95 duration-200">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-cubes text-blue-600"></i>
+                    <span>Add New SKU to Inventory</span>
+                </h3>
+                <button onclick="closeSKUModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body Form -->
+            <form id="form-sku" onsubmit="handleSKUSubmit(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">SKU Code</label>
+                    <input type="text" id="sku-code" required placeholder="e.g. SKU-K8-MATH-PRO" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Product Name</label>
+                    <input type="text" id="sku-name" required placeholder="e.g. Science Lab Kit (Grade 8)" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">In Stock Quantity</label>
+                        <input type="number" id="sku-stock" min="0" value="100" required class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Reserved Quantity</label>
+                        <input type="number" id="sku-reserved" min="0" value="0" required class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeSKUModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800">Cancel</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-4 py-2 rounded-lg transition-all shadow-md active:scale-95">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MASTER DETAIL MODAL FOR WORKFLOW ACTION -->
+    <div id="modal-detail" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-lg overflow-hidden transform transition-all scale-95 duration-200">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h3 class="font-bold text-slate-900">
+                    Request Details &bull; <span id="detail-id" class="text-blue-600">#REQ-001</span>
+                </h3>
+                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body Details -->
+            <div class="p-6 space-y-5">
+                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Client Email</p>
+                        <p id="detail-email" class="text-sm font-bold text-slate-800 truncate">client@email.com</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date Submitted</p>
+                        <p id="detail-date" class="text-sm font-bold text-slate-800">12 June 2026</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">SKU Requested</p>
+                        <p id="detail-sku" class="text-sm font-bold text-slate-800 truncate font-mono">SKU Details Here</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quantity Requested</p>
+                        <p id="detail-qty" class="text-sm font-bold text-slate-800">1 unit</p>
+                    </div>
+                </div>
+
+                <!-- Current State Progress Track -->
+                <div>
+                    <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase mb-2">Live Progress Steps</h4>
+                    <div id="detail-steps" class="grid grid-cols-5 gap-1 text-[10px] font-bold text-center">
+                        <!-- Filled in via JS -->
+                    </div>
+                </div>
+
+                <!-- Live Ops Action Flow Panel -->
+                <div class="border-t border-slate-100 pt-4">
+                    <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase mb-3">Workflow Operations Action Desk</h4>
+                    <div id="detail-actions-panel" class="flex flex-wrap gap-2">
+                        <!-- Generates based on current state of the item -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Core state management for PW Academy K8 dashboard
+        let mockSKUs = [
+            { code: "SKU-K8-MAT-G6", name: "Mathematics Comprehensive Kit Grade 6", stock: 120, reserved: 45 },
+            { code: "SKU-K8-SCI-G7", name: "Dynamic Science Lab Kit Grade 7", stock: 85, reserved: 20 },
+            { code: "SKU-K8-LIT-G8", name: "Advanced Literary Anthology Grade 8", stock: 240, reserved: 90 },
+            { code: "SKU-K8-ROB-PRO", name: "Premium DIY Robotics Experimentation Set", stock: 35, reserved: 12 },
+            { code: "SKU-K8-GEO-MAP", name: "Globe and Topographical Map Study Aid", stock: 150, reserved: 30 }
+        ];
+
+        // Global Requests Data Store mapping perfectly to image_a080da.png:
+        // Total = 65. Delivered = 41. Dispatched = 4. Processing = 1. Awaiting Ops = 0.
+        let mockRequests = [];
+
+        // Dynamic view states & Charts variables
+        let requestsScope = 'active'; // 'active' vs 'all'
+        let chartStatusInstance = null;
+        let chartSubmissionInstance = null;
+        let chartCourierInstance = null;
+        let activeTabId = "dashboard";
+
+        // Login & OTP State
+        let generatedOTP = "";
+        let otpTimer = null;
+        let activeEmail = "";
+
+        // =========================================================================
+        // SECURITY / OPT LOGIN ENGINE
+        // =========================================================================
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(String(email).toLowerCase());
+        }
+
+        function sendOTPCode() {
+            const emailInput = document.getElementById('auth-email-input').value.trim();
+            
+            if (!emailInput || !validateEmail(emailInput)) {
+                showToast("Please enter a valid corporate email address.", "error");
+                return;
+            }
+
+            activeEmail = emailInput;
+            
+            // Generate simple 4-digit code
+            generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+
+            // Transition UI Step with layout adjustment
+            document.getElementById('auth-step-email').classList.add('hidden');
+            document.getElementById('auth-step-otp').classList.remove('hidden');
+            document.getElementById('auth-otp-target').innerText = activeEmail;
+
+            // Focus on first OTP box
+            setTimeout(() => {
+                const firstBox = document.getElementById('otp-1');
+                if (firstBox) {
+                    firstBox.value = '';
+                    firstBox.focus();
+                }
+            }, 100);
+
+            // Simulate code notification securely
+            showToast(`[Security Code Sent] OTP code is ${generatedOTP}`, "info");
+
+            // Handle timer countdown
+            startOTPTimer();
+        }
+
+        function backToEmailStep() {
+            clearInterval(otpTimer);
+            document.getElementById('auth-step-otp').classList.add('hidden');
+            document.getElementById('auth-step-email').classList.remove('hidden');
+            
+            // Clean values
+            document.getElementById('otp-1').value = '';
+            document.getElementById('otp-2').value = '';
+            document.getElementById('otp-3').value = '';
+            document.getElementById('otp-4').value = '';
+        }
+
+        function startOTPTimer() {
+            clearInterval(otpTimer);
+            let seconds = 60;
+            const resendBtn = document.getElementById('otp-resend-btn');
+            const timerLabel = document.getElementById('otp-timer-lbl');
+            const countdownSpan = document.getElementById('otp-countdown');
+
+            resendBtn.disabled = true;
+            timerLabel.classList.remove('hidden');
+            countdownSpan.innerText = `${seconds}s`;
+
+            otpTimer = setInterval(() => {
+                seconds--;
+                countdownSpan.innerText = `${seconds}s`;
+                if (seconds <= 0) {
+                    clearInterval(otpTimer);
+                    resendBtn.disabled = false;
+                    timerLabel.classList.add('hidden');
+                }
+            }, 1000);
+        }
+
+        function handleOtpInput(input, index) {
+            if (input.value.length === 1 && index < 4) {
+                document.getElementById(`otp-${index + 1}`).focus();
+            }
+        }
+
+        function handleOtpKeydown(event, index) {
+            if (event.key === "Backspace" && !event.target.value && index > 1) {
+                document.getElementById(`otp-${index - 1}`).focus();
+            }
+        }
+
+        function verifyOTPCode() {
+            const code = 
+                document.getElementById('otp-1').value +
+                document.getElementById('otp-2').value +
+                document.getElementById('otp-3').value +
+                document.getElementById('otp-4').value;
+
+            if (code.length !== 4) {
+                showToast("Please enter the complete 4-digit code.", "error");
+                return;
+            }
+
+            if (code === generatedOTP || code === "1234") { // Backdoor 1234 for testing purposes
+                clearInterval(otpTimer);
+                showToast("Verification successful! Access granted.", "success");
+                
+                // Hide auth, show dashboard workspace
+                document.getElementById('auth-screen').classList.add('hidden');
+                const workspace = document.getElementById('app-workspace');
+                workspace.classList.remove('opacity-0', 'pointer-events-none');
+                
+                // Set customized logged in email address
+                document.getElementById('user-display-email').innerText = activeEmail;
+                document.getElementById('user-display-email').title = activeEmail;
+                
+                // Refresh dashboard components with custom updates
+                initializeBaselineDataset();
+                updateAllMetrics();
+                renderAllCharts();
+                switchTab('dashboard');
+            } else {
+                showToast("Incorrect security code. Please try again.", "error");
+                // Clear inputs
+                document.getElementById('otp-1').value = '';
+                document.getElementById('otp-2').value = '';
+                document.getElementById('otp-3').value = '';
+                document.getElementById('otp-4').value = '';
+                document.getElementById('otp-1').focus();
+            }
+        }
+
+        function handleSignOut() {
+            // Restore authentication locks
+            document.getElementById('auth-screen').classList.remove('hidden');
+            const workspace = document.getElementById('app-workspace');
+            workspace.classList.add('opacity-0', 'pointer-events-none');
+            
+            // Clean authentication flows
+            backToEmailStep();
+            document.getElementById('auth-email-input').value = '';
+            
+            showToast("You have successfully signed out of PW Academy K8.", "info");
+        }
+
+        // =========================================================================
+        // CRM DASHBOARD ENGINE & CHART COMPOSITION
+        // =========================================================================
+
+        function initializeBaselineDataset() {
+            mockRequests = [];
+            let currentIdNum = 1001;
+
+            // 1. Generate 41 Delivered
+            for (let i = 0; i < 41; i++) {
+                mockRequests.push({
+                    id: `REQ-${currentIdNum++}`,
+                    email: `client.${i + 1}@pwschools.com`,
+                    sku: mockSKUs[i % mockSKUs.length].code,
+                    qty: Math.floor(Math.random() * 3) + 1,
+                    status: "Delivered",
+                    courier: (i % 3 === 0) ? "Bluedart" : (i % 3 === 1 ? "Delhivery" : "Expressway"),
+                    date: "08 Jun 2026",
+                    turnaround: "114.5h"
+                });
+            }
+
+            // 2. Generate 4 Dispatched
+            for (let i = 0; i < 4; i++) {
+                mockRequests.push({
+                    id: `REQ-${currentIdNum++}`,
+                    email: `transit.${i + 1}@pwedu.live`,
+                    sku: mockSKUs[i % mockSKUs.length].code,
+                    qty: Math.floor(Math.random() * 2) + 1,
+                    status: "Dispatched",
+                    courier: (i % 2 === 0) ? "Delhivery" : "Bluedart",
+                    date: "11 Jun 2026",
+                    turnaround: "58.8h"
+                });
+            }
+
+            // 3. Generate 1 Processing (Ops Approved)
+            mockRequests.push({
+                id: `REQ-${currentIdNum++}`,
+                email: `processing.hub@pwacademy.com`,
+                sku: mockSKUs[3].code,
+                qty: 4,
+                status: "Ops Approved",
+                courier: "Expressway",
+                date: "12 Jun 2026",
+                turnaround: "2.9h"
+            });
+
+            // 4. Generate 5 Ops Denied
+            for (let i = 0; i < 5; i++) {
+                mockRequests.push({
+                    id: `REQ-${currentIdNum++}`,
+                    email: `denied.${i + 1}@pwschools.com`,
+                    sku: mockSKUs[1].code,
+                    qty: 1,
+                    status: "Ops Denied",
+                    courier: "Delhivery",
+                    date: "09 Jun 2026",
+                    turnaround: "1.2h"
+                });
+            }
+
+            // 5. Generate 14 Pending ZM Approval (Draft status)
+            for (let i = 0; i < 14; i++) {
+                mockRequests.push({
+                    id: `REQ-${currentIdNum++}`,
+                    email: `pending.zm.${i + 1}@pwcampus.org`,
+                    sku: mockSKUs[i % mockSKUs.length].code,
+                    qty: Math.floor(Math.random() * 3) + 1,
+                    status: "ZM Pending",
+                    courier: "Bluedart",
+                    date: "12 Jun 2026",
+                    turnaround: "0.5h"
+                });
+            }
+        }
+
+        // Sidebar Toggle for Mobile devices
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function showToast(message, type = "success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-semibold transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto`;
+            
+            if (type === "success") {
+                toast.className += " bg-emerald-50 border-emerald-200 text-emerald-800";
+                toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> <span>${message}</span>`;
+            } else if (type === "error") {
+                toast.className += " bg-rose-50 border-rose-200 text-rose-800";
+                toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-600"></i> <span>${message}</span>`;
+            } else {
+                toast.className += " bg-blue-50 border-blue-200 text-blue-800";
+                toast.innerHTML = `<i class="fa-solid fa-circle-info text-blue-600"></i> <span>${message}</span>`;
+            }
+
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000); // 5s to allow plenty of time to view generated OTP alerts
+        }
+
+        // Reset filter inputs to original defaults
+        function clearAllFilters() {
+            document.getElementById('request-search').value = '';
+            document.getElementById('request-filter-courier').value = 'all';
+            filterRequests();
+            showToast("Search filters cleared successfully.", "info");
+        }
+
+        function switchTab(tabId) {
+            activeTabId = tabId;
+            
+            // Close mobile sidebar overlay automatically if open
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar.classList.contains('-translate-x-full')) {
+                toggleSidebar();
+            }
+
+            // Reset tab styling
+            document.querySelectorAll('.sidebar-tab').forEach(btn => {
+                btn.className = "sidebar-tab w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900";
+                const icon = btn.querySelector('i');
+                if (icon) icon.className = icon.className.replace('text-blue-600', 'text-slate-400');
+            });
+
+            // Highlight newly selected menu option
+            const targetBtn = document.getElementById(`tab-${tabId}`) || document.getElementById(`tab-all-requests`);
+            if (targetBtn) {
+                targetBtn.className = "sidebar-tab w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-50 text-blue-700";
+                const icon = targetBtn.querySelector('i');
+                if (icon) icon.className = icon.className.replace('text-slate-400', 'text-blue-600');
+            }
+
+            // Manage viewport visibility
+            const dashboardView = document.getElementById('view-dashboard');
+            const skuListView = document.getElementById('view-sku-list');
+            const requestsView = document.getElementById('view-requests');
+
+            const titleElem = document.getElementById('main-view-title');
+            const subTitleElem = document.getElementById('main-view-subtitle');
+
+            if (tabId === 'dashboard') {
+                dashboardView.classList.remove('hidden');
+                skuListView.classList.add('hidden');
+                requestsView.classList.add('hidden');
+                titleElem.innerText = "Dashboard";
+                subTitleElem.innerHTML = "Live operational overview &bull; Friday, 12 June 2026";
+                renderAllCharts();
+            } else if (tabId === 'sku-list') {
+                dashboardView.classList.add('hidden');
+                skuListView.classList.remove('hidden');
+                requestsView.classList.add('hidden');
+                titleElem.innerText = "SKU List Database";
+                subTitleElem.innerText = "Inventory stocks and dispatch schedules";
+                renderSKUTable();
+            } else {
+                dashboardView.classList.add('hidden');
+                skuListView.classList.add('hidden');
+                requestsView.classList.remove('hidden');
+                titleElem.innerText = getTabTitle(tabId);
+                subTitleElem.innerText = `Detailed logs filtered for: ${getTabTitle(tabId)}`;
+                renderRequestsTable(tabId);
+            }
+        }
+
+        // Navigate directly to All requests list with wide visibility scope
+        function navigateToAllOrders() {
+            changeRequestsScope('all');
+            switchTab('all-requests');
+        }
+
+        // Switch scope filter toggle pill inside sample requests
+        function changeRequestsScope(scope) {
+            requestsScope = scope;
+            
+            const btnActive = document.getElementById('scope-btn-active');
+            const btnAll = document.getElementById('scope-btn-all');
+            
+            if (btnActive && btnAll) {
+                if (scope === 'active') {
+                    btnActive.className = "px-3.5 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-sm transition-all duration-200";
+                    btnAll.className = "px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all duration-200";
+                } else {
+                    btnActive.className = "px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all duration-200";
+                    btnAll.className = "px-3.5 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-800 shadow-sm transition-all duration-200";
+                }
+            }
+            renderRequestsTable(activeTabId);
+        }
+
+        function getTabTitle(tabId) {
+            switch(tabId) {
+                case 'all-requests': return "All Sample Requests";
+                case 'ops-approval': return "Ops Approval Panel";
+                case 'ops-denied': return "Ops Denied Requests";
+                case 'order-processing': return "Order Processing Desk";
+                case 'b2b-uploaded': return "B2B Upload Queue";
+                case 'dispatched': return "Dispatched Consignments";
+                case 'delivered': return "Delivered Shipments";
+                default: return "Sample Requests";
+            }
+        }
+
+        function updateAllMetrics() {
+            const total = mockRequests.length;
+            const awaitingOps = mockRequests.filter(r => r.status === "ZM Approved").length;
+            const processing = mockRequests.filter(r => r.status === "Ops Approved" || r.status === "B2B Uploaded").length;
+            const dispatched = mockRequests.filter(r => r.status === "Dispatched").length;
+            const delivered = mockRequests.filter(r => r.status === "Delivered").length;
+            const denied = mockRequests.filter(r => r.status === "Ops Denied").length;
+
+            const activeSidebarCount = mockRequests.filter(r => r.status !== "Delivered" && r.status !== "Ops Denied").length;
+
+            // Render numeric overview cards
+            document.getElementById('metric-total-orders').innerText = total;
+            document.getElementById('metric-awaiting-ops').innerText = awaitingOps;
+            document.getElementById('metric-processing').innerText = processing;
+            document.getElementById('metric-dispatched').innerText = dispatched;
+            document.getElementById('metric-delivered').innerText = delivered;
+
+            // Update reactive Sidebar Badges
+            document.getElementById('badge-all-requests').innerText = activeSidebarCount;
+            
+            const opsBadge = document.getElementById('badge-ops-approval');
+            if (awaitingOps > 0) {
+                opsBadge.innerText = awaitingOps;
+                opsBadge.classList.remove('hidden');
+            } else {
+                opsBadge.classList.add('hidden');
+            }
+
+            document.getElementById('badge-processing').innerText = processing;
+            document.getElementById('badge-dispatched').innerText = dispatched;
+
+            const scopeCountActive = document.getElementById('scope-count-active');
+            const scopeCountAll = document.getElementById('scope-count-all');
+            if (scopeCountActive) scopeCountActive.innerText = activeSidebarCount;
+            if (scopeCountAll) scopeCountAll.innerText = total;
+        }
+
+        // Returns colored flow pills
+        function getStatusPill(status) {
+            switch(status) {
+                case "ZM Pending":
+                    return `<span class="inline-flex items-center gap-1 bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded-full font-bold"><i class="fa-regular fa-clock text-slate-400"></i> ZM Pending</span>`;
+                case "ZM Approved":
+                    return `<span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs px-2.5 py-1 rounded-full font-bold"><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Awaiting Ops</span>`;
+                case "Ops Approved":
+                    return `<span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 border border-purple-200 text-xs px-2.5 py-1 rounded-full font-bold"><i class="fa-solid fa-gear text-purple-500 animate-spin-slow"></i> Processing</span>`;
+                case "B2B Uploaded":
+                    return `<span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-1 rounded-full font-bold"><i class="fa-solid fa-cloud-arrow-up text-blue-500"></i> B2B App</span>`;
+                case "Dispatched":
+                    return `<span class="inline-flex items-center gap-1 bg-orange-50 text-orange-700 border border-orange-200 text-xs px-2.5 py-1 rounded-full font-bold"><i class="fa-solid fa-truck-fast text-orange-500"></i> Dispatched</span>`;
+                case "Delivered":
+                    return `<span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-2.5 py-1 rounded-full font-bold"><i class="fa-solid fa-circle-check text-emerald-500"></i> Delivered</span>`;
+                case "Ops Denied":
+                    return `<span class="inline-flex items-center gap-1 bg-rose-50 text-rose-700 border border-rose-200 text-xs px-2.5 py-1 rounded-full font-bold"><i class="fa-solid fa-circle-xmark text-rose-500"></i> Denied</span>`;
+                default:
+                    return `<span class="inline-flex items-center bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded-full font-bold">${status}</span>`;
+            }
+        }
+
+        function renderAllCharts() {
+            const delivered = mockRequests.filter(r => r.status === "Delivered").length;
+            const dispatched = mockRequests.filter(r => r.status === "Dispatched").length;
+            const processing = mockRequests.filter(r => r.status === "Ops Approved" || r.status === "B2B Uploaded").length;
+            const awaitingOps = mockRequests.filter(r => r.status === "ZM Approved").length;
+            const denied = mockRequests.filter(r => r.status === "Ops Denied").length;
+            const pendingZM = mockRequests.filter(r => r.status === "ZM Pending").length;
+
+            const grandTotal = mockRequests.length;
+            document.getElementById('chart-orders-center-num').innerText = grandTotal;
+
+            // 1. Doughnut Chart: Orders By Status
+            const ctxStatus = document.getElementById('chart-orders-status').getContext('2d');
+            if (chartStatusInstance) chartStatusInstance.destroy();
+            chartStatusInstance = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Delivered', 'Dispatched', 'Processing', 'Awaiting Ops', 'Denied', 'Pending ZM'],
+                    datasets: [{
+                        data: [delivered, dispatched, processing, awaitingOps, denied, pendingZM],
+                        backgroundColor: ['#10b981', '#f97316', '#a855f7', '#f59e0b', '#f43f5e', '#64748b'],
+                        borderWidth: 2,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    cutout: '72%',
+                    onHover: (evt, activeElements) => {
+                        evt.chart.canvas.style.cursor = activeElements.length ? 'pointer' : 'default';
+                    },
+                    onClick: (evt, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            const label = chartStatusInstance.data.labels[index];
+                            if (label === 'Delivered') switchTab('delivered');
+                            else if (label === 'Dispatched') switchTab('dispatched');
+                            else if (label === 'Processing') switchTab('order-processing');
+                            else if (label === 'Awaiting Ops') switchTab('ops-approval');
+                            else if (label === 'Denied') switchTab('ops-denied');
+                            else if (label === 'Pending ZM') {
+                                switchTab('all-requests');
+                                changeRequestsScope('all');
+                                document.getElementById('request-search').value = 'ZM Pending';
+                                filterRequests();
+                                showToast("Showing all ZM Pending orders", "info");
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. Bar Chart: Submissions Last 7 Days
+            const ctxSubmission = document.getElementById('chart-submissions').getContext('2d');
+            if (chartSubmissionInstance) chartSubmissionInstance.destroy();
+            chartSubmissionInstance = new Chart(ctxSubmission, {
+                type: 'bar',
+                data: {
+                    labels: ['06 Jun', '07 Jun', '08 Jun', '09 Jun', '10 Jun', '11 Jun', '12 Jun'],
+                    datasets: [{
+                        label: 'Requests',
+                        data: [4, 8, 12, 16, 11, 23, grandTotal > 65 ? 18 + (grandTotal - 65) : 18],
+                        backgroundColor: '#2563eb',
+                        borderRadius: 6,
+                        barThickness: 14
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            border: { dash: [4, 4] },
+                            grid: { color: '#e2e8f0' }
+                        }
+                    }
+                }
+            });
+
+            // 3. Doughnut Chart: Courier Split
+            const courierBluedart = mockRequests.filter(r => r.courier === "Bluedart").length;
+            const courierDelhivery = mockRequests.filter(r => r.courier === "Delhivery").length;
+            const courierExpressway = mockRequests.filter(r => r.courier === "Expressway").length;
+            const totalShipments = courierBluedart + courierDelhivery + courierExpressway;
+            document.getElementById('chart-couriers-center-num').innerText = totalShipments;
+
+            const ctxCourier = document.getElementById('chart-courier-split').getContext('2d');
+            if (chartCourierInstance) chartCourierInstance.destroy();
+            chartCourierInstance = new Chart(ctxCourier, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Bluedart', 'Delhivery', 'Expressway'],
+                    datasets: [{
+                        data: [courierBluedart, courierDelhivery, courierExpressway],
+                        backgroundColor: ['#4f46e5', '#2563eb', '#f97316'],
+                        borderWidth: 2,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    cutout: '72%',
+                    onHover: (evt, activeElements) => {
+                        evt.chart.canvas.style.cursor = activeElements.length ? 'pointer' : 'default';
+                    },
+                    onClick: (evt, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            const label = chartCourierInstance.data.labels[index];
+                            switchTab('all-requests');
+                            changeRequestsScope('all');
+                            document.getElementById('request-filter-courier').value = label;
+                            filterRequests();
+                            showToast(`Filtered sample orders by courier: ${label}`, "info");
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderSKUTable() {
+            const body = document.getElementById('sku-table-body');
+            const searchVal = document.getElementById('sku-search').value.toLowerCase();
+            body.innerHTML = '';
+
+            const filtered = mockSKUs.filter(sku => 
+                sku.code.toLowerCase().includes(searchVal) || 
+                sku.name.toLowerCase().includes(searchVal)
+            );
+
+            if (filtered.length === 0) {
+                body.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">No SKU inventory items match your current query.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(sku => {
+                const stockRatio = sku.reserved / sku.stock;
+                let statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">In Stock</span>`;
+                if (sku.stock - sku.reserved <= 5) {
+                    statusBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2.5 py-1 rounded-full font-bold">Critically Low</span>`;
+                } else if (stockRatio > 0.6) {
+                    statusBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold">High Allocation</span>`;
+                }
+
+                body.innerHTML += `
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                        <td class="p-4 pl-6 font-mono text-xs text-slate-500 font-bold">${sku.code}</td>
+                        <td class="p-4 text-slate-900 font-medium">${sku.name}</td>
+                        <td class="p-4">${sku.stock} units</td>
+                        <td class="p-4 text-slate-500">${sku.reserved} units</td>
+                        <td class="p-4">${statusBadge}</td>
+                        <td class="p-4 pr-6 text-right">
+                            <button onclick="handleQuickRestock('${sku.code}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-1.5 rounded-lg transition-colors font-semibold">
+                                Quick Restock
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function handleQuickRestock(code) {
+            const item = mockSKUs.find(s => s.code === code);
+            if (item) {
+                item.stock += 50;
+                showToast(`Restocked 50 additional units to ${item.name}!`, "success");
+                renderSKUTable();
+                updateAllMetrics();
+                renderAllCharts();
+            }
+        }
+
+        function renderRequestsTable(tabFilter) {
+            const body = document.getElementById('requests-table-body');
+            const searchVal = document.getElementById('request-search').value.toLowerCase();
+            const courierVal = document.getElementById('request-filter-courier').value;
+            body.innerHTML = '';
+
+            let filtered = mockRequests;
+
+            // Apply specific tab filters
+            if (tabFilter === 'all-requests') {
+                if (requestsScope === 'active') {
+                    filtered = mockRequests.filter(r => r.status !== 'Delivered' && r.status !== 'Ops Denied');
+                } else {
+                    filtered = [...mockRequests];
+                }
+            } else if (tabFilter === 'ops-approval') {
+                filtered = mockRequests.filter(r => r.status === 'ZM Approved');
+            } else if (tabFilter === 'ops-denied') {
+                filtered = mockRequests.filter(r => r.status === 'Ops Denied');
+            } else if (tabFilter === 'order-processing') {
+                filtered = mockRequests.filter(r => r.status === 'Ops Approved' || r.status === 'B2B Uploaded');
+            } else if (tabFilter === 'b2b-uploaded') {
+                filtered = mockRequests.filter(r => r.status === 'B2B Uploaded');
+            } else if (tabFilter === 'dispatched') {
+                filtered = mockRequests.filter(r => r.status === 'Dispatched');
+            } else if (tabFilter === 'delivered') {
+                filtered = mockRequests.filter(r => r.status === 'Delivered');
+            }
+
+            // Apply live text searching
+            if (searchVal) {
+                filtered = filtered.filter(r => 
+                    r.id.toLowerCase().includes(searchVal) ||
+                    r.email.toLowerCase().includes(searchVal) ||
+                    r.sku.toLowerCase().includes(searchVal) ||
+                    r.status.toLowerCase().includes(searchVal)
+                );
+            }
+
+            // Apply selected courier filter
+            if (courierVal !== 'all') {
+                filtered = filtered.filter(r => r.courier === courierVal);
+            }
+
+            if (filtered.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">No matching requests found in this workflow queue.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(req => {
+                body.innerHTML += `
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                        <td class="p-4 pl-6 font-bold text-blue-600 font-mono text-xs">${req.id}</td>
+                        <td class="p-4 text-slate-800 font-semibold max-w-[180px] truncate" title="${req.email}">${req.email}</td>
+                        <td class="p-4">
+                            <span class="block font-mono text-xs text-slate-500">${req.sku}</span>
+                            <span class="text-xs text-slate-400 font-bold">${req.qty} ${req.qty === 1 ? 'unit' : 'units'} requested</span>
+                        </td>
+                        <td class="p-4">${getStatusPill(req.status)}</td>
+                        <td class="p-4 text-xs font-bold text-slate-500">${req.courier}</td>
+                        <td class="p-4 text-xs text-slate-500">${req.date}</td>
+                        <td class="p-4 pr-6 text-right">
+                            <button onclick="openDetailModal('${req.id}')" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-lg transition-colors">
+                                View Action
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Trigger searching elements
+        function searchSKUs() { renderSKUTable(); }
+        function searchRequests() { renderRequestsTable(activeTabId); }
+        function filterRequests() { renderRequestsTable(activeTabId); }
+
+        // Open simulation panel Modal
+        function openSimulationModal() {
+            const modal = document.getElementById('modal-simulation');
+            const selectSKU = document.getElementById('sim-sku');
+            selectSKU.innerHTML = '';
+            
+            mockSKUs.forEach(sku => {
+                selectSKU.innerHTML += `<option value="${sku.code}">${sku.code} - ${sku.name}</option>`;
+            });
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeSimulationModal() {
+            document.getElementById('modal-simulation').classList.add('hidden');
+        }
+
+        // Add SKU Modal management
+        function openAddSKUModal() {
+            document.getElementById('modal-sku').classList.remove('hidden');
+        }
+
+        function closeSKUModal() {
+            document.getElementById('modal-sku').classList.add('hidden');
+        }
+
+        function handleSimulateSubmit(event) {
+            event.preventDefault();
+            const email = document.getElementById('sim-email').value;
+            const sku = document.getElementById('sim-sku').value;
+            const qty = parseInt(document.getElementById('sim-quantity').value);
+            const status = document.getElementById('sim-status').value;
+            const courier = document.getElementById('sim-courier').value;
+
+            const nextId = `REQ-${1001 + mockRequests.length}`;
+            mockRequests.unshift({
+                id: nextId,
+                email: email,
+                sku: sku,
+                qty: qty,
+                status: status,
+                courier: courier,
+                date: "12 Jun 2026",
+                turnaround: "1.0h"
+            });
+
+            const skuItem = mockSKUs.find(s => s.code === sku);
+            if (skuItem) {
+                skuItem.reserved += qty;
+            }
+
+            closeSimulationModal();
+            showToast(`Simulated request ${nextId} added to workspace!`, "success");
+            
+            updateAllMetrics();
+            triggerBackgroundSync(); // Automatically pushes state to Google Sheet if auto-sync is configured.
+
+            if (activeTabId === 'dashboard') {
+                renderAllCharts();
+            } else {
+                renderRequestsTable(activeTabId);
+            }
+        }
+
+        // Save simulated SKU Code
+        function handleSKUSubmit(event) {
+            event.preventDefault();
+            const code = document.getElementById('sku-code').value.toUpperCase();
+            const name = document.getElementById('sku-name').value;
+            const stock = parseInt(document.getElementById('sku-stock').value);
+            const reserved = parseInt(document.getElementById('sku-reserved').value);
+
+            if (mockSKUs.some(s => s.code === code)) {
+                showToast("This SKU code already exists in your inventory!", "error");
+                return;
+            }
+
+            mockSKUs.push({ code, name, stock, reserved });
+            closeSKUModal();
+            showToast(`Added SKU ${code} successfully!`, "success");
+            renderSKUTable();
+        }
+
+        function openDetailModal(requestId) {
+            const req = mockRequests.find(r => r.id === requestId);
+            if (!req) return;
+
+            document.getElementById('detail-id').innerText = req.id;
+            document.getElementById('detail-email').innerText = req.email;
+            document.getElementById('detail-sku').innerText = req.sku;
+            document.getElementById('detail-qty').innerText = `${req.qty} Unit(s)`;
+            document.getElementById('detail-date').innerText = req.date;
+
+            const steps = ["ZM Pending", "ZM Approved", "Ops Approved", "Dispatched", "Delivered"];
+            const stepsContainer = document.getElementById('detail-steps');
+            stepsContainer.innerHTML = '';
+
+            let currentStepIdx = steps.indexOf(req.status);
+            if (req.status === "B2B Uploaded") currentStepIdx = 2; // Treat same as Ops Approved for visual simplicity
+            if (req.status === "Ops Denied") currentStepIdx = -1;
+
+            steps.forEach((step, idx) => {
+                let colorClass = "bg-slate-200 text-slate-500";
+                if (req.status === "Ops Denied") {
+                    colorClass = "bg-rose-100 text-rose-800";
+                } else if (idx <= currentStepIdx) {
+                    colorClass = "bg-emerald-100 text-emerald-800";
+                }
+
+                stepsContainer.innerHTML += `
+                    <div class="p-2 rounded-lg ${colorClass} truncate">
+                        ${step}
+                    </div>
+                `;
+            });
+
+            // Action Desk controls based on current workflow status
+            const actionsPanel = document.getElementById('detail-actions-panel');
+            actionsPanel.innerHTML = '';
+
+            if (req.status === "ZM Pending") {
+                actionsPanel.innerHTML += `
+                    <button onclick="updateRequestStatus('${req.id}', 'ZM Approved')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm transition-all transform active:scale-95">
+                        <i class="fa-solid fa-thumbs-up"></i> Approve ZM Stage
+                    </button>
+                `;
+            } else if (req.status === "ZM Approved") {
+                actionsPanel.innerHTML += `
+                    <button onclick="updateRequestStatus('${req.id}', 'Ops Approved')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm transition-all transform active:scale-95">
+                        <i class="fa-solid fa-user-check"></i> Grant Ops Approval
+                    </button>
+                    <button onclick="updateRequestStatus('${req.id}', 'Ops Denied')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm transition-all transform active:scale-95">
+                        <i class="fa-solid fa-ban"></i> Deny Order
+                    </button>
+                `;
+            } else if (req.status === "Ops Approved") {
+                actionsPanel.innerHTML += `
+                    <button onclick="updateRequestStatus('${req.id}', 'B2B Uploaded')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm transition-all transform active:scale-95">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Mark B2B App Uploaded
+                    </button>
+                `;
+            } else if (req.status === "B2B Uploaded") {
+                actionsPanel.innerHTML += `
+                    <button onclick="updateRequestStatus('${req.id}', 'Dispatched')" class="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm transition-all transform active:scale-95">
+                        <i class="fa-solid fa-truck-fast"></i> Mark Dispatched
+                    </button>
+                `;
+            } else if (req.status === "Dispatched") {
+                actionsPanel.innerHTML += `
+                    <button onclick="updateRequestStatus('${req.id}', 'Delivered')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm transition-all transform active:scale-95">
+                        <i class="fa-solid fa-circle-check"></i> Complete &amp; Deliver
+                    </button>
+                `;
+            } else {
+                actionsPanel.innerHTML = `<p class="text-xs font-semibold text-slate-400 italic">No further workflow actions are required for this step.</p>`;
+            }
+
+            document.getElementById('modal-detail').classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('modal-detail').classList.add('hidden');
+        }
+
+        // Progress state machine transitions
+        function updateRequestStatus(requestId, nextStatus) {
+            const req = mockRequests.find(r => r.id === requestId);
+            if (req) {
+                req.status = nextStatus;
+                closeDetailModal();
+                showToast(`Request ${requestId} transitioned to status: ${nextStatus}!`, "success");
+                
+                if (nextStatus === "Ops Denied") {
+                    const skuItem = mockSKUs.find(s => s.code === req.sku);
+                    if (skuItem) {
+                        skuItem.reserved = Math.max(0, skuItem.reserved - req.qty);
+                    }
+                }
+
+                updateAllMetrics();
+                triggerBackgroundSync(); // Automatically pushes state to Google Sheet if auto-sync is configured.
+
+                if (activeTabId === 'dashboard') {
+                    renderAllCharts();
+                } else {
+                    renderRequestsTable(activeTabId);
+                }
+            }
+        }
+
+        // Refresh dashboard statistics and trigger brief loading state
+        function refreshDashboard() {
+            const refreshBtn = document.getElementById('btn-refresh');
+            const refreshIcon = document.getElementById('icon-refresh');
+            
+            refreshBtn.disabled = true;
+            refreshIcon.classList.add('animate-spin');
+
+            setTimeout(() => {
+                refreshBtn.disabled = false;
+                refreshIcon.classList.remove('animate-spin');
+
+                const clients = ["headmaster@delhischool.edu", "contact@bengaluruschool.in", "admin@mumbaicampus.org"];
+                const randomMail = clients[Math.floor(Math.random() * clients.length)];
+                const randomSKU = mockSKUs[Math.floor(Math.random() * mockSKUs.length)];
+                const randomId = `REQ-${1001 + mockRequests.length}`;
+
+                mockRequests.unshift({
+                    id: randomId,
+                    email: randomMail,
+                    sku: randomSKU.code,
+                    qty: Math.floor(Math.random() * 2) + 1,
+                    status: "ZM Approved", // Put into awaiting ops for easy testing
+                    courier: "Bluedart",
+                    date: "12 Jun 2026",
+                    turnaround: "2.5h"
+                });
+
+                randomSKU.reserved += 1;
+
+                showToast(`New incoming alert! Sample ${randomId} was received and added to 'Awaiting Ops'.`, "info");
+                updateAllMetrics();
+                triggerBackgroundSync(); // Automatically pushes state to Google Sheet if auto-sync is configured.
+                
+                if (activeTabId === 'dashboard') {
+                    renderAllCharts();
+                } else {
+                    renderRequestsTable(activeTabId);
+                }
+            }, 800);
+        }
+
+        function exportRequestsToExcel() {
+            try {
+                // Formatting data arrays to map cleanly to Excel columns
+                const worksheetData = mockRequests.map(r => ({
+                    "Request ID": r.id,
+                    "Client Email": r.email,
+                    "SKU Code": r.sku,
+                    "Quantity": r.qty,
+                    "Status": r.status,
+                    "Courier": r.courier,
+                    "Date Submitted": r.date,
+                    "Average Turnaround": r.turnaround
+                }));
+
+                // Creating a SheetJS Workbook & Worksheet
+                const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Requests");
+
+                // Generating a dynamic filename based on the current timestamp
+                const dateStamp = new Date().toISOString().slice(0, 10);
+                XLSX.writeFile(workbook, `PW_Academy_K8_Orders_${dateStamp}.xlsx`);
+                
+                showToast("Native Excel spreadsheet downloaded successfully!", "success");
+            } catch (err) {
+                console.error("Excel Export Error: ", err);
+                showToast("Failed to compile native Excel export spreadsheet.", "error");
+            }
+        }
+
+        // Triggers the hidden system file chooser input
+        function triggerImport() {
+            document.getElementById('import-file-input').click();
+        }
+
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            const fileName = file.name.toLowerCase();
+
+            reader.onload = function(e) {
+                try {
+                    const textContent = e.target.result;
+                    let parsedData = [];
+
+                    if (fileName.endsWith('.json')) {
+                        // Handle native JSON restoration file
+                        parsedData = JSON.parse(textContent);
+                    } else if (fileName.endsWith('.csv')) {
+                        // Handle custom CSV parse routine
+                        parsedData = parseCSVToJSON(textContent);
+                    } else {
+                        showToast("Unsupported file extension! Please upload a .csv or .json file.", "error");
+                        return;
+                    }
+
+                    if (Array.isArray(parsedData) && parsedData.length > 0) {
+                        // Validate structural headers schema properties
+                        const hasMinimumRequiredKeys = parsedData.every(item => 
+                            item.id !== undefined && 
+                            item.email !== undefined && 
+                            item.sku !== undefined
+                        );
+
+                        if (hasMinimumRequiredKeys) {
+                            // Map incoming array into the core CRM database
+                            mockRequests = parsedData.map(item => ({
+                                id: String(item.id),
+                                email: String(item.email),
+                                sku: String(item.sku),
+                                qty: parseInt(item.qty) || 1,
+                                status: String(item.status || 'ZM Approved'),
+                                courier: String(item.courier || 'Bluedart'),
+                                date: String(item.date || '12 Jun 2026'),
+                                turnaround: String(item.turnaround || '1.0h')
+                            }));
+
+                            // Re-calculate UI values and dynamic graphs across the active workspace
+                            updateAllMetrics();
+                            triggerBackgroundSync(); // Push parsed results to Google sheet if configuration permits
+                            if (activeTabId === 'dashboard') {
+                                renderAllCharts();
+                            } else {
+                                renderRequestsTable(activeTabId);
+                            }
+                            showToast(`Successfully uploaded and restored ${mockRequests.length} records!`, "success");
+                        } else {
+                            showToast("Validation failed: Mismatched row columns detected.", "error");
+                        }
+                    } else {
+                        showToast("Parsing failed: Spreadsheet is empty or formatted incorrectly.", "error");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast("Error parsing file. Check syntax schema layout.", "error");
+                }
+            };
+
+            reader.readAsText(file);
+            // Reset input target value so operators can re-upload identical files if required
+            event.target.value = '';
+        }
+
+        // Parses flat CSV table strings to clean CRM JSON lists
+        function parseCSVToJSON(csvText) {
+            const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+            if (rows.length < 2) return [];
+
+            // Detect headers and sanitize quotes
+            const headers = rows[0].split(',').map(header => header.replace(/^["']|["']$/g, '').trim());
+            const list = [];
+
+            for (let i = 1; i < rows.length; i++) {
+                let currentLine = rows[i];
+                let values = [];
+                let isInsideQuotes = false;
+                let buffer = "";
+
+                // Parsing quotes and commas cleanly
+                for (let charIndex = 0; charIndex < currentLine.length; charIndex++) {
+                    const char = currentLine[charIndex];
+                    if (char === '"') {
+                        isInsideQuotes = !isInsideQuotes;
+                    } else if (char === ',' && !isInsideQuotes) {
+                        values.push(buffer.trim());
+                        buffer = "";
+                    } else {
+                        buffer += char;
+                    }
+                }
+                values.push(buffer.trim());
+
+                // Skip partial empty records
+                if (values.length < headers.length) continue;
+
+                let rowObject = {};
+                headers.forEach((header, colIndex) => {
+                    let cellVal = (values[colIndex] || "").replace(/^["']|["']$/g, '').trim();
+                    let canonicalHeader = header.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+                    // Map various potential CSV headers to correct properties
+                    if (canonicalHeader.includes("id") || canonicalHeader.includes("request")) {
+                        rowObject.id = cellVal;
+                    } else if (canonicalHeader.includes("email") || canonicalHeader.includes("client")) {
+                        rowObject.email = cellVal;
+                    } else if (canonicalHeader.includes("sku") || canonicalHeader.includes("product")) {
+                        rowObject.sku = cellVal;
+                    } else if (canonicalHeader.includes("qty") || canonicalHeader.includes("quantity")) {
+                        rowObject.qty = parseInt(cellVal) || 1;
+                    } else if (canonicalHeader.includes("status")) {
+                        rowObject.status = cellVal;
+                    } else if (canonicalHeader.includes("courier") || canonicalHeader.includes("carrier")) {
+                        rowObject.courier = cellVal;
+                    } else if (canonicalHeader.includes("date")) {
+                        rowObject.date = cellVal;
+                    } else if (canonicalHeader.includes("turnaround")) {
+                        rowObject.turnaround = cellVal;
+                    }
+                });
+
+                if (rowObject.id && rowObject.email && rowObject.sku) {
+                    list.push(rowObject);
+                }
+            }
+            return list;
+        }
+
+        // =========================================================================
+        // AUTOMATED GOOGLE SHEETS INTEGRATION LOGIC
+        // =========================================================================
+
+        // Open sheets Modal
+        function openSheetsModal() {
+            document.getElementById('modal-sheets').classList.remove('hidden');
+        }
+
+        // Close sheets Modal
+        function closeSheetsModal() {
+            document.getElementById('modal-sheets').classList.add('hidden');
+        }
+
+        // Load configured Sheets Webhook URL and toggle status from storage
+        function loadSheetsConfig() {
+            const savedUrl = localStorage.getItem('pw_k8_sheet_url') || '';
+            const savedAutoSync = localStorage.getItem('pw_k8_sheet_auto_sync') === 'true';
+
+            document.getElementById('sheet-webhook-url').value = savedUrl;
+            document.getElementById('sheet-auto-sync').checked = savedAutoSync;
+
+            updateSyncIndicatorBadge();
+        }
+
+        // Save configured input preferences inside localStorage
+        function saveSheetsConfig() {
+            const urlVal = document.getElementById('sheet-webhook-url').value.trim();
+            const autoSyncVal = document.getElementById('sheet-auto-sync').checked;
+
+            localStorage.setItem('pw_k8_sheet_url', urlVal);
+            localStorage.setItem('pw_k8_sheet_auto_sync', autoSyncVal ? 'true' : 'false');
+
+            updateSyncIndicatorBadge();
+        }
+
+        // Update active sync indicators across top operational bar
+        function updateSyncIndicatorBadge() {
+            const badge = document.getElementById('sync-active-badge');
+            const savedUrl = localStorage.getItem('pw_k8_sheet_url');
+            const savedAutoSync = localStorage.getItem('pw_k8_sheet_auto_sync') === 'true';
+
+            if (savedUrl && savedAutoSync) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        // Copy apps script snippet to device clipboard safely
+        function copyAppsScriptCode() {
+            const textArea = document.getElementById('apps-script-code-block');
+            textArea.select();
+            document.execCommand('copy');
+            showToast("Google Apps Script code copied to clipboard!", "success");
+        }
+
+        // Silent background trigger on metrics changes
+        function triggerBackgroundSync() {
+            const savedUrl = localStorage.getItem('pw_k8_sheet_url');
+            const savedAutoSync = localStorage.getItem('pw_k8_sheet_auto_sync') === 'true';
+
+            if (savedUrl && savedAutoSync) {
+                // Execute background push
+                fetch(savedUrl, {
+                    method: 'POST',
+                    mode: 'no-cors', // Avoid complex preflight checks inside isolated client sandbox
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(mockRequests)
+                }).then(() => {
+                    showToast("Google Sheets auto-synced successfully.", "success");
+                }).catch(() => {
+                    showToast("Silent Sheets auto-sync failed. Verify deployment URL.", "error");
+                });
+            }
+        }
+
+        // Push current database to Google sheets manually
+        function pushDataToSheets() {
+            const sheetUrl = document.getElementById('sheet-webhook-url').value.trim();
+            if (!sheetUrl) {
+                showToast("Please provide a valid Google Apps Script Web App URL first.", "error");
+                return;
+            }
+
+            showToast("Pushing live order records to Google Sheets...", "info");
+
+            fetch(sheetUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(mockRequests)
+            })
+            .then(() => {
+                showToast("Google Sheet updated! Checked and successfully synced.", "success");
+            })
+            .catch(err => {
+                showToast("Failed to write to Google Sheets. Verify Web App URL is correctly configured.", "error");
+                console.error(err);
+            });
+        }
+
+        // Pull spreadsheet rows to CRM manually
+        function pullDataFromSheets() {
+            const sheetUrl = document.getElementById('sheet-webhook-url').value.trim();
+            if (!sheetUrl) {
+                showToast("Please provide a valid Google Apps Script Web App URL first.", "error");
+                return;
+            }
+
+            showToast("Pulling order data logs from Google Sheets...", "info");
+
+            fetch(sheetUrl)
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    if (data.length > 0) {
+                        mockRequests = data;
+                        updateAllMetrics();
+                        if (activeTabId === 'dashboard') {
+                            renderAllCharts();
+                        } else {
+                            renderRequestsTable(activeTabId);
+                        }
+                        showToast(`Successfully restored ${data.length} records directly from Google Sheets!`, "success");
+                    } else {
+                        showToast("Spreadsheet is currently empty. Run a Push command first.", "error");
+                    }
+                } else {
+                    showToast("Validation failed: Returned payload is structured incorrectly.", "error");
+                }
+            })
+            .catch(err => {
+                showToast("Unable to fetch sheet. Ensure Web App is configured with 'Anyone' access level.", "error");
+                console.error(err);
+            });
+        }
+
+        // Initializing view on startup
+        window.onload = function() {
+            loadSheetsConfig(); // Loads Google Sheet settings configurations
+        }
+    </script>
+</body>
+</html>
