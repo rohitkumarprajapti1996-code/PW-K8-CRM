@@ -3,12 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sawrsawti Publication Pvt. Ltd. - Ops Dashboard</title>
+    <title>Sawrsawti Publication Pvt. Ltd. - Live Ops Dashboard</title>
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for compiling JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <script>
@@ -18,25 +25,37 @@
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
                         brand: {
-                            blue: '#2557D6', // Match the login screen blue
+                            blue: '#2557D6',
                             dark: '#1e40af',
-                            light: '#eff6ff'
-                        },
-                        sidebar: '#fbfbfb',
-                        background: '#f6f6f5'
+                            light: '#eff6ff',
+                            sidebar: '#fbfbfb',
+                            background: '#f6f6f5'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
                     }
                 }
             }
         }
     </script>
+    
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f6f6f5; color: #111827; }
+        
+        /* Custom scrollbar for data tables */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Utility classes for CSS charts */
+        /* Utility for CSS-based Doughnut Chart */
         .chart-doughnut {
             border-radius: 50%;
             display: flex;
@@ -51,6 +70,7 @@
             height: 70%;
             background-color: white;
             border-radius: 50%;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
     </style>
 </head>
@@ -62,7 +82,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Exposing Firebase globally for React (Babel) to consume seamlessly
+        // Exposing Firebase modules globally so React (via Babel) can use them synchronously
         window.FB = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, serverTimestamp };
     </script>
 
@@ -71,10 +91,6 @@
             Dashboard: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>,
             Inventory: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>,
             Requests: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>,
-            Search: () => <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>,
-            ChevronDown: () => <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>,
-            Refresh: () => <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>,
-            Upload: () => <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>,
             Check: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>,
             Trash: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>,
             Close: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -98,25 +114,28 @@
 
         const LoginScreen = ({ onLogin }) => {
             return (
-                <div className="flex h-screen w-full bg-[#f6f6f5]">
-                    <div className="w-1/3 bg-[#2557D6] text-white flex flex-col justify-between p-12 hidden md:flex">
-                        <div>
+                <div className="flex h-screen w-full bg-[#f6f6f5] animate-fade-in">
+                    <div className="w-1/3 bg-[#2557D6] text-white flex flex-col justify-between p-12 hidden md:flex relative overflow-hidden">
+                        {/* Decorative background element */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+                        
+                        <div className="relative z-10">
                             <div className="flex items-center gap-3 mb-16">
-                                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center font-bold text-sm">SP</div>
-                                <span className="font-semibold text-lg tracking-wide">Sawrsawti Publication Pvt. Ltd.</span>
+                                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center font-bold text-sm ring-1 ring-white/30">SP</div>
+                                <span className="font-semibold text-lg tracking-wide">Sawrsawti Publication</span>
                             </div>
                             
-                            <h1 className="text-5xl font-bold mb-6 leading-tight">
+                            <h1 className="text-5xl font-bold mb-6 leading-tight drop-shadow-md">
                                 Ops<br/>Dashboard
                             </h1>
-                            <p className="text-white/80 text-lg max-w-sm mb-12">
+                            <p className="text-white/80 text-lg max-w-sm mb-12 leading-relaxed">
                                 Internal operations platform for managing SKU inventory, sample requests, and real-time live order fulfillment.
                             </p>
 
                             <div className="space-y-4">
                                 {['Real-time live syncing', 'Cloud persistence', 'Order management'].map((item, i) => (
                                     <div key={i} className="flex items-center gap-3 text-white/90">
-                                        <div className="w-5 h-5 rounded-full border border-white/30 flex items-center justify-center">
+                                        <div className="w-5 h-5 rounded-full border border-white/30 flex items-center justify-center bg-white/10">
                                             <Icons.Check />
                                         </div>
                                         {item}
@@ -124,15 +143,15 @@
                                 ))}
                             </div>
                         </div>
-                        <div className="text-white/50 text-sm">
+                        <div className="text-white/50 text-sm relative z-10">
                             © 2026 Sawrsawti Publication Pvt. Ltd.
                         </div>
                     </div>
 
                     <div className="flex-1 flex flex-col justify-center items-center p-8">
-                        <div className="w-full max-w-md">
+                        <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
                             <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign in to Live Ops</h2>
-                            <p className="text-gray-500 mb-8">Access the secure CRM dashboard</p>
+                            <p className="text-gray-500 mb-8 text-sm">Secure CRM infrastructure connection</p>
 
                             <form onSubmit={(e) => { e.preventDefault(); onLogin(); }} className="space-y-6">
                                 <div>
@@ -140,12 +159,13 @@
                                     <input 
                                         type="email" 
                                         defaultValue="rohit.ops@saraswatipublication.com"
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none transition-all"
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-brand-blue focus:border-brand-blue outline-none transition-all shadow-sm"
+                                        required
                                     />
                                 </div>
                                 <button 
                                     type="submit"
-                                    className="w-full bg-[#2557D6] hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-sm"
+                                    className="w-full bg-[#2557D6] hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg flex justify-center items-center gap-2"
                                 >
                                     Login Securely
                                 </button>
@@ -157,51 +177,52 @@
         };
 
         const DashboardView = ({ requests }) => {
-            // Live Calculations based on real Firestore data
             const total = requests.length;
             const awaiting = requests.filter(r => r.status === 'ZM PENDING').length;
             const processing = requests.filter(r => ['OPS APPROVED', 'ORDER PROCESSING', 'B2B APP UPLOADED'].includes(r.status)).length;
             const dispatched = requests.filter(r => r.status === 'DISPATCHED').length;
-            const delivered = requests.filter(r => r.status === 'DELIVERED').length;
 
             return (
                 <div className="space-y-8 animate-fade-in pb-10">
-                    <div className="flex justify-between items-end">
+                    <div className="flex justify-between items-end border-b border-gray-200 pb-4">
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">Live Dashboard</h2>
-                            <p className="text-gray-500 text-sm mt-1">Real-time operational overview connected to Cloud</p>
+                            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Live Operations Board</h2>
+                            <p className="text-gray-500 text-sm mt-1">Real-time analytical overview of fulfillment</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         {[
-                            { label: 'TOTAL ORDERS', val: total, sub: 'All-time' },
-                            { label: 'AWAITING OPS', val: awaiting, sub: 'ZM Pending', color: 'text-brand-blue' },
-                            { label: 'PROCESSING', val: processing, sub: 'In B2B / Ops', color: 'text-purple-600' },
+                            { label: 'TOTAL ORDERS', val: total, sub: 'All-time volume' },
+                            { label: 'AWAITING OPS', val: awaiting, sub: 'Requires action', color: 'text-brand-blue' },
+                            { label: 'PROCESSING', val: processing, sub: 'In B2B / Packaging', color: 'text-purple-600' },
                             { label: 'DISPATCHED', val: dispatched, sub: 'In transit', color: 'text-orange-500' }
                         ].map((stat, i) => (
-                            <div key={i} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-                                <p className="text-xs font-bold text-gray-500 uppercase">{stat.label}</p>
+                            <div key={i} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{stat.label}</p>
                                 <h3 className={`text-4xl font-bold mt-2 mb-1 ${stat.color || 'text-gray-900'}`}>{stat.val}</h3>
-                                <p className="text-xs text-gray-400">{stat.sub}</p>
+                                <p className="text-xs text-gray-500 font-medium">{stat.sub}</p>
                             </div>
                         ))}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center">
-                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest w-full text-left mb-6">Pipeline Health</h3>
-                            <div className="chart-doughnut w-48 h-48" style={{ background: total > 0 ? 'conic-gradient(#10b981 0% 65%, #f59e0b 65% 90%, #f97316 90% 100%)' : '#e5e7eb' }}>
-                                <div className="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
+                        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest w-full text-left mb-6">Pipeline Distribution</h3>
+                            <div className="chart-doughnut w-48 h-48" style={{ background: total > 0 ? 'conic-gradient(#3b82f6 0% 40%, #10b981 40% 70%, #f59e0b 70% 90%, #f97316 90% 100%)' : '#e5e7eb' }}>
+                                <div className="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center shadow-inner z-10">
                                     <span className="text-3xl font-bold text-gray-900">{total}</span>
-                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Orders</span>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Total Logs</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center col-span-2 text-center text-gray-500">
-                            <Icons.Dashboard />
-                            <p className="mt-4 font-medium">Add requests and SKUs to see live timeline distributions here.</p>
+                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center col-span-2 text-center text-gray-500">
+                            <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-gray-400 mb-4">
+                                <Icons.Dashboard />
+                            </div>
+                            <h4 className="text-gray-800 font-bold mb-1">System is Live & Monitoring</h4>
+                            <p className="text-sm max-w-sm">All changes made in the Inventory and Fulfillment tabs sync automatically to this dashboard.</p>
                         </div>
                     </div>
                 </div>
@@ -218,8 +239,6 @@
                     ...formData, 
                     mrp: Number(formData.mrp), 
                     stock: Number(formData.stock), 
-                    credit: '38%', 
-                    cash: '40%' 
                 });
                 setShowAdd(false);
                 setFormData({ id: '', name: '', category: 'CBSE Class 10th', mrp: '', stock: '', status: 'ACTIVE' });
@@ -233,9 +252,9 @@
 
             return (
                 <div className="space-y-6 animate-fade-in pb-10">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-bold text-gray-900">Live SKU Database</h2>
-                        <button onClick={() => setShowAdd(true)} className="flex items-center px-4 py-2 bg-brand-blue text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm transition">
+                    <div className="flex justify-between items-center border-b border-gray-200 pb-4">
+                        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Live SKU Database</h2>
+                        <button onClick={() => setShowAdd(true)} className="flex items-center px-4 py-2 bg-[#2557D6] text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm transition">
                             + Add New SKU
                         </button>
                     </div>
@@ -245,24 +264,25 @@
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 mb-1">ERP Item ID</label>
-                                    <input required value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})} className="w-full p-2 border rounded" placeholder="e.g. ERP-ITEM-2026..." />
+                                    <input required value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. ERP-ITEM-2026..." />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 mb-1">Book Name</label>
-                                    <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2 border rounded" placeholder="Full Title" />
+                                    <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Full Title" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 mb-1">Category</label>
-                                        <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full p-2 border rounded bg-white">
+                                        <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg bg-white outline-none">
                                             <option>CBSE Class 10th</option>
                                             <option>CBSE Class 12th</option>
                                             <option>State Board</option>
+                                            <option>General Reading</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 mb-1">Status</label>
-                                        <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full p-2 border rounded bg-white">
+                                        <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg bg-white outline-none">
                                             <option>ACTIVE</option>
                                             <option>OUT OF STOCK</option>
                                             <option>DISCONTINUED</option>
@@ -272,14 +292,14 @@
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 mb-1">MRP (₹)</label>
-                                        <input required type="number" min="0" value={formData.mrp} onChange={e => setFormData({...formData, mrp: e.target.value})} className="w-full p-2 border rounded" />
+                                        <input required type="number" min="0" value={formData.mrp} onChange={e => setFormData({...formData, mrp: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg outline-none" />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 mb-1">Initial Stock</label>
-                                        <input required type="number" min="0" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full p-2 border rounded" />
+                                        <input required type="number" min="0" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg outline-none" />
                                     </div>
                                 </div>
-                                <button type="submit" className="w-full mt-4 bg-brand-blue text-white font-bold py-3 rounded hover:bg-blue-700">Save to Database</button>
+                                <button type="submit" className="w-full mt-6 bg-[#2557D6] text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-md">Save Database Entry</button>
                             </form>
                         </Modal>
                     )}
@@ -287,18 +307,18 @@
                     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-[#fbfbfb]">
+                                <thead className="bg-gray-50/80">
                                     <tr>
                                         {['Book Name', 'ERP ID', 'MRP', 'Stock', 'Live Status', 'Actions'].map(h => (
-                                            <th key={h} className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">{h}</th>
+                                            <th key={h} className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-white divide-y divide-gray-100">
                                     {skus.length === 0 ? (
-                                        <tr><td colSpan="6" className="p-8 text-center text-gray-400">No SKUs in database. Add one to begin.</td></tr>
+                                        <tr><td colSpan="6" className="p-10 text-center text-gray-400 font-medium">No SKUs in database. Add one to begin.</td></tr>
                                     ) : skus.map((sku) => (
-                                        <tr key={sku.docId} className="hover:bg-gray-50/50 transition-colors">
+                                        <tr key={sku.docId} className="hover:bg-blue-50/30 transition-colors">
                                             <td className="px-6 py-4 text-sm font-semibold text-gray-900 max-w-[250px] truncate" title={sku.name}>{sku.name}</td>
                                             <td className="px-6 py-4 text-sm text-gray-500 font-mono tracking-tight">{sku.id}</td>
                                             <td className="px-6 py-4 text-sm text-gray-900 font-medium font-mono">₹{sku.mrp}</td>
@@ -307,7 +327,7 @@
                                                 <select 
                                                     value={sku.status}
                                                     onChange={(e) => onUpdateStatus(sku.docId, e.target.value)}
-                                                    className={`px-2.5 py-1 text-[11px] font-bold rounded-md uppercase tracking-wide border cursor-pointer outline-none transition-colors ${getStatusColor(sku.status)}`}
+                                                    className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wide border cursor-pointer outline-none transition-colors ${getStatusColor(sku.status)}`}
                                                 >
                                                     <option value="ACTIVE">ACTIVE</option>
                                                     <option value="OUT OF STOCK">OUT OF STOCK</option>
@@ -315,7 +335,7 @@
                                                 </select>
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                <button onClick={() => onDelete(sku.docId)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
+                                                <button onClick={() => onDelete(sku.docId)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete SKU">
                                                     <Icons.Trash />
                                                 </button>
                                             </td>
@@ -336,7 +356,6 @@
 
             const handleSubmit = (e) => {
                 e.preventDefault();
-                // Auto generate a random order ID for realism
                 const generatedId = `SP-ORD-${Math.floor(Math.random() * 90000) + 10000}`;
                 onAddRequest({
                     id: generatedId,
@@ -357,7 +376,7 @@
                     'OPS APPROVED': 'bg-blue-50 text-blue-700 border-blue-200',
                     'DISPATCHED': 'bg-orange-50 text-orange-700 border-orange-200',
                     'DELIVERED': 'bg-green-50 text-green-700 border-green-200',
-                    'ZM DECLINED': 'bg-gray-100 text-gray-700 border-gray-200',
+                    'ZM DECLINED': 'bg-gray-50 text-gray-600 border-gray-200',
                     'B2B APP UPLOADED': 'bg-purple-50 text-purple-700 border-purple-200'
                 };
                 return colors[status] || 'bg-gray-100 text-gray-700 border-gray-200';
@@ -367,9 +386,9 @@
 
             return (
                 <div className="space-y-6 animate-fade-in pb-10 h-full flex flex-col">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-bold text-gray-900">Live Sample Requests</h2>
-                        <button onClick={() => setShowAdd(true)} className="flex items-center px-4 py-2 bg-brand-blue text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm transition">
+                    <div className="flex justify-between items-center border-b border-gray-200 pb-4">
+                        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Live Sample Requests</h2>
+                        <button onClick={() => setShowAdd(true)} className="flex items-center px-4 py-2 bg-[#2557D6] text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm transition">
                             + Log Request
                         </button>
                     </div>
@@ -379,42 +398,42 @@
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 mb-1">Recipient Name</label>
-                                    <input required value={formData.recipient} onChange={e => setFormData({...formData, recipient: e.target.value})} className="w-full p-2 border rounded" placeholder="Teacher / School Name" />
+                                    <input required value={formData.recipient} onChange={e => setFormData({...formData, recipient: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Teacher / School Name" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 mb-1">Requesting Employee</label>
-                                    <input required value={formData.employee} onChange={e => setFormData({...formData, employee: e.target.value})} className="w-full p-2 border rounded" placeholder="Sales Rep Name" />
+                                    <input required value={formData.employee} onChange={e => setFormData({...formData, employee: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Sales Rep Name" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 mb-1">Number of Books</label>
-                                        <input required type="number" min="1" value={formData.books} onChange={e => setFormData({...formData, books: e.target.value})} className="w-full p-2 border rounded" />
+                                        <input required type="number" min="1" value={formData.books} onChange={e => setFormData({...formData, books: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg outline-none" />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 mb-1">Total Value (₹)</label>
-                                        <input required type="number" min="0" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full p-2 border rounded" />
+                                        <input required type="number" min="0" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg outline-none" />
                                     </div>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 mb-1">Initial Status</label>
-                                    <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full p-2 border rounded bg-white">
+                                    <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full p-2.5 border border-gray-300 rounded-lg bg-white outline-none">
                                         <option value="ZM PENDING">ZM PENDING</option>
                                         <option value="OPS APPROVED">OPS APPROVED</option>
                                     </select>
                                 </div>
-                                <button type="submit" className="w-full mt-4 bg-brand-blue text-white font-bold py-3 rounded hover:bg-blue-700">Submit Request</button>
+                                <button type="submit" className="w-full mt-6 bg-[#2557D6] text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-md">Submit Logistics Request</button>
                             </form>
                         </Modal>
                     )}
                     
-                    <div className="flex gap-2 border-b border-gray-200 pb-2 overflow-x-auto">
+                    <div className="flex gap-2 pb-2 overflow-x-auto scrollbar-hide">
                         {tabs.map(tab => (
                             <button 
                                 key={tab} 
                                 onClick={() => setSubView(tab)}
-                                className={`px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors ${currentSubView === tab ? 'bg-brand-blue text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
+                                className={`px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-all ${currentSubView === tab ? 'bg-gray-900 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
                             >
-                                {tab} ({requests.filter(r => tab === 'All Requests' || r.status === tab).length})
+                                {tab} <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${currentSubView === tab ? 'bg-white/20' : 'bg-gray-100'}`}>{requests.filter(r => tab === 'All Requests' || r.status === tab).length}</span>
                             </button>
                         ))}
                     </div>
@@ -422,18 +441,18 @@
                     <div className="bg-white border border-gray-200 rounded-xl shadow-sm flex-1 flex flex-col overflow-hidden">
                         <div className="overflow-x-auto flex-1">
                             <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-[#fbfbfb]">
+                                <thead className="bg-gray-50/80">
                                     <tr>
                                         {['Order ID', 'Recipient', 'Employee', 'Books', 'Amount', 'Live Status', 'Actions'].map((h) => (
-                                            <th key={h} className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">{h}</th>
+                                            <th key={h} className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-white divide-y divide-gray-100">
                                     {filteredRequests.length === 0 ? (
-                                        <tr><td colSpan="7" className="p-8 text-center text-gray-400">No requests found in this category.</td></tr>
+                                        <tr><td colSpan="7" className="p-10 text-center text-gray-400 font-medium">No requests found in this pipeline stage.</td></tr>
                                     ) : filteredRequests.map((req) => (
-                                        <tr key={req.docId} className="hover:bg-gray-50/50 transition-colors">
+                                        <tr key={req.docId} className="hover:bg-blue-50/30 transition-colors">
                                             <td className="px-6 py-4 text-sm font-medium text-gray-500 font-mono">{req.id}</td>
                                             <td className="px-6 py-4 text-sm font-semibold text-gray-900">{req.recipient}</td>
                                             <td className="px-6 py-4 text-sm text-gray-500">{req.employee}</td>
@@ -443,7 +462,7 @@
                                                 <select 
                                                     value={req.status}
                                                     onChange={(e) => onUpdateStatus(req.docId, e.target.value)}
-                                                    className={`px-2.5 py-1 text-[11px] font-bold rounded-md uppercase tracking-wide border cursor-pointer outline-none transition-colors ${getStatusColor(req.status)}`}
+                                                    className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wide border cursor-pointer outline-none transition-colors ${getStatusColor(req.status)}`}
                                                 >
                                                     <option value="ZM PENDING">ZM PENDING</option>
                                                     <option value="ZM DECLINED">ZM DECLINED</option>
@@ -454,7 +473,7 @@
                                                 </select>
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                <button onClick={() => onDelete(req.docId)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
+                                                <button onClick={() => onDelete(req.docId)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete Record">
                                                     <Icons.Trash />
                                                 </button>
                                             </td>
@@ -480,54 +499,71 @@
             const [skus, setSkus] = React.useState([]);
             const [requests, setRequests] = React.useState([]);
 
-            // Firebase Bootstrapper
+            // Safe Firebase Initialization Routine
             React.useEffect(() => {
-                const initTimer = setInterval(async () => {
-                    if (window.FB) {
-                        clearInterval(initTimer);
-                        try {
-                            if (typeof __firebase_config === 'undefined') {
-                                console.warn("No Firebase config found (Likely hosted externally). Falling back to local mode.");
-                                setFbReady(true);
-                                return;
-                            }
+                let isMounted = true;
+                const bootFirebase = async () => {
+                    if (!window.FB) return;
+                    try {
+                        let configObj = null;
+                        if (typeof __firebase_config !== 'undefined') {
+                            configObj = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+                        }
 
-                            const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore } = window.FB;
-                            const config = JSON.parse(__firebase_config);
-                            const app = initializeApp(config);
-                            const fbAuth = getAuth(app);
-                            const firestore = getFirestore(app);
+                        if (!configObj) {
+                            console.warn("No Firebase config found. Falling back to secure local mode.");
+                            if(isMounted) setFbReady(true);
+                            return;
+                        }
 
-                            if (typeof __initial_auth_token !== 'undefined') {
-                                await signInWithCustomToken(fbAuth, __initial_auth_token);
-                            } else {
-                                await signInAnonymously(fbAuth);
-                            }
+                        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore } = window.FB;
+                        const app = initializeApp(configObj);
+                        const fbAuth = getAuth(app);
+                        const firestore = getFirestore(app);
 
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(fbAuth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(fbAuth);
+                        }
+
+                        if(isMounted) {
                             setDb(firestore);
                             setUser(fbAuth.currentUser);
                             setFbReady(true);
-                        } catch (err) {
-                            console.error("Firebase Auth Error:", err);
-                            setFbReady(true); // Proceed anyway to show UI
                         }
+                    } catch (err) {
+                        console.error("Firebase Initialization Error:", err);
+                        if(isMounted) setFbReady(true); // Proceed to show local UI gracefully
                     }
-                }, 50);
-                return () => clearInterval(initTimer);
+                };
+
+                const initTimer = setInterval(() => {
+                    if (window.FB) {
+                        clearInterval(initTimer);
+                        bootFirebase();
+                    }
+                }, 100);
+
+                return () => {
+                    isMounted = false;
+                    clearInterval(initTimer);
+                };
             }, []);
 
-            // Firebase Live Data Subscriptions
             React.useEffect(() => {
                 if (!fbReady) return;
                 
                 if (!db || !user) {
-                    // Fallback local mock data when Firebase is not configured
+                    // Populate robust local mock data when disconnected from Cloud
                     setSkus([
-                        { docId: 'm1', id: 'ERP-101', name: 'CBSE Math Class 10th', mrp: 450, stock: 1200, status: 'ACTIVE' },
-                        { docId: 'm2', id: 'ERP-102', name: 'CBSE Science Class 10th', mrp: 480, stock: 850, status: 'ACTIVE' }
+                        { docId: 'm1', id: 'ERP-101', name: 'CBSE Math Class 10th Standard', mrp: 450, stock: 1200, status: 'ACTIVE' },
+                        { docId: 'm2', id: 'ERP-102', name: 'CBSE Science Class 10th Standard', mrp: 480, stock: 850, status: 'ACTIVE' },
+                        { docId: 'm3', id: 'ERP-103', name: 'General Knowledge Vol 1', mrp: 250, stock: 0, status: 'OUT OF STOCK' }
                     ]);
                     setRequests([
-                        { docId: 'r1', id: 'SP-ORD-12345', recipient: 'Delhi Public School', employee: 'Rahul K.', books: 50, amount: '₹22,500', status: 'ZM PENDING', createdAt: Date.now() }
+                        { docId: 'r1', id: 'SP-ORD-12345', recipient: 'Delhi Public School', employee: 'Rahul K.', books: 50, amount: '₹22,500', status: 'ZM PENDING', createdAt: Date.now() },
+                        { docId: 'r2', id: 'SP-ORD-67890', recipient: 'St. Xaviers High', employee: 'Anita S.', books: 120, amount: '₹55,000', status: 'OPS APPROVED', createdAt: Date.now() - 100000 }
                     ]);
                     return;
                 }
@@ -538,18 +574,16 @@
                 const unsubSkus = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'skus'), (snap) => {
                     const data = [];
                     snap.forEach(doc => data.push({ docId: doc.id, ...doc.data() }));
-                    // Sort alphabetically by name
                     data.sort((a,b) => a.name.localeCompare(b.name));
                     setSkus(data);
-                }, (err) => console.error(err));
+                }, (err) => console.error("SKU Sync Error", err));
 
                 const unsubReqs = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'requests'), (snap) => {
                     const data = [];
                     snap.forEach(doc => data.push({ docId: doc.id, ...doc.data() }));
-                    // Sort newest first
                     data.sort((a,b) => b.createdAt - a.createdAt);
                     setRequests(data);
-                }, (err) => console.error(err));
+                }, (err) => console.error("Requests Sync Error", err));
 
                 return () => { 
                     unsubSkus(); 
@@ -617,7 +651,7 @@
             if (!fbReady) {
                 return (
                     <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 text-gray-500 font-medium">
-                        <div className="w-8 h-8 border-4 border-brand-blue border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <div className="w-10 h-10 border-4 border-brand-blue border-t-transparent rounded-full animate-spin mb-4 shadow-sm"></div>
                         Connecting to Secure Live Servers...
                     </div>
                 );
@@ -631,14 +665,14 @@
                 <li>
                     <button 
                         onClick={() => setCurrentView(id)}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${indent ? 'pl-10' : ''} ${
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${indent ? 'pl-10' : ''} ${
                             currentView === id 
-                            ? 'bg-[#eef2ff] text-[#2557D6] shadow-sm ring-1 ring-[#e0e7ff]' 
+                            ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' 
                             : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                         }`}
                     >
                         <div className="flex items-center">
-                            {!indent && Icon && <span className={`mr-3 ${currentView === id ? 'text-[#2557D6]' : 'text-gray-400'}`}><Icon /></span>}
+                            {!indent && Icon && <span className={`mr-3 ${currentView === id ? 'text-blue-600' : 'text-gray-400'}`}><Icon /></span>}
                             {label}
                         </div>
                         {badge > 0 && (
@@ -650,28 +684,28 @@
 
             return (
                 <div className="flex h-screen bg-[#f6f6f5] font-sans text-gray-900 overflow-hidden">
-                    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+                    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 z-10 shadow-sm">
                         <div className="h-20 flex items-center px-6 border-b border-gray-100">
-                            <div className="w-9 h-9 bg-brand-blue rounded-lg flex items-center justify-center text-white font-bold text-sm mr-3 shadow-md ring-2 ring-blue-100 relative overflow-hidden">
+                            <div className="w-10 h-10 bg-[#2557D6] rounded-xl flex items-center justify-center text-white font-bold text-sm mr-3 shadow-md ring-4 ring-blue-50 relative overflow-hidden">
                                 <div className="absolute inset-0 bg-white/20 blur-sm"></div>
                                 <span className="relative z-10">SP</span>
                             </div>
                             <div className="flex flex-col">
                                 <span className="font-bold text-gray-900 text-[15px] leading-tight tracking-tight">Sawrsawti Publ.</span>
-                                <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider mt-0.5 w-fit flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Live System
+                                <span className="text-[10px] text-green-700 bg-green-50 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider mt-0.5 w-fit flex items-center gap-1 border border-green-100">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Ops Connected
                                 </span>
                             </div>
                         </div>
 
-                        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-6">
+                        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-8">
                             <ul className="space-y-1">
-                                <NavItem id="dashboard" icon={Icons.Dashboard} label="Dashboard" />
+                                <NavItem id="dashboard" icon={Icons.Dashboard} label="Live Dashboard" />
                             </ul>
 
                             <div>
-                                <div className="px-4 mb-2 flex items-center justify-between text-xs font-bold text-gray-400 uppercase tracking-widest">
-                                    Inventory Management
+                                <div className="px-4 mb-3 flex items-center justify-between text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                                    Inventory System
                                 </div>
                                 <ul className="space-y-1">
                                     <NavItem id="sku-list" icon={Icons.Inventory} label="SKU Master List" badge={skus.length} />
@@ -679,21 +713,21 @@
                             </div>
 
                             <div>
-                                <div className="px-4 mb-2 flex items-center justify-between text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                <div className="px-4 mb-3 flex items-center justify-between text-[11px] font-bold text-gray-400 uppercase tracking-widest">
                                     Fulfillment Desk
                                 </div>
-                                <ul className="space-y-1 relative before:content-[''] before:absolute before:left-[22px] before:top-4 before:bottom-4 before:w-[1px] before:bg-gray-200">
-                                    <NavItem id="sample-requests-all" label="Overview Board" indent={true} />
+                                <ul className="space-y-1 relative before:content-[''] before:absolute before:left-[22px] before:top-4 before:bottom-4 before:w-[2px] before:bg-gray-100">
+                                    <NavItem id="sample-requests-all" label="Logistics Board" indent={true} badge={requests.length} />
                                 </ul>
                             </div>
                         </nav>
 
-                        <div className="p-4 border-t border-gray-100 bg-[#fafafa]">
-                            <div className="flex flex-col">
-                                <p className="text-sm font-semibold text-gray-900 truncate">rohit.ops@saraswati...</p>
-                                <div className="flex justify-between items-center mt-1">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Authorized Ops</p>
-                                    <button onClick={() => setIsLoggedIn(false)} className="text-xs font-medium text-gray-500 hover:text-red-600 transition-colors">Logout</button>
+                        <div className="p-5 border-t border-gray-100 bg-gray-50/50">
+                            <div className="flex flex-col bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                                <p className="text-sm font-semibold text-gray-900 truncate">rohit.ops@saras...</p>
+                                <div className="flex justify-between items-center mt-2">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-100 px-2 py-0.5 rounded">Authorized</p>
+                                    <button onClick={() => setIsLoggedIn(false)} className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors">Logout</button>
                                 </div>
                             </div>
                         </div>
