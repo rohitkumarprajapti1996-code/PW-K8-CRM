@@ -486,8 +486,14 @@
                     if (window.FB) {
                         clearInterval(initTimer);
                         try {
+                            if (typeof __firebase_config === 'undefined') {
+                                console.warn("No Firebase config found (Likely hosted externally). Falling back to local mode.");
+                                setFbReady(true);
+                                return;
+                            }
+
                             const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore } = window.FB;
-                            const config = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { projectId: "live-crm" };
+                            const config = JSON.parse(__firebase_config);
                             const app = initializeApp(config);
                             const fbAuth = getAuth(app);
                             const firestore = getFirestore(app);
@@ -503,6 +509,7 @@
                             setFbReady(true);
                         } catch (err) {
                             console.error("Firebase Auth Error:", err);
+                            setFbReady(true); // Proceed anyway to show UI
                         }
                     }
                 }, 50);
@@ -511,7 +518,20 @@
 
             // Firebase Live Data Subscriptions
             React.useEffect(() => {
-                if (!fbReady || !db || !user) return;
+                if (!fbReady) return;
+                
+                if (!db || !user) {
+                    // Fallback local mock data when Firebase is not configured
+                    setSkus([
+                        { docId: 'm1', id: 'ERP-101', name: 'CBSE Math Class 10th', mrp: 450, stock: 1200, status: 'ACTIVE' },
+                        { docId: 'm2', id: 'ERP-102', name: 'CBSE Science Class 10th', mrp: 480, stock: 850, status: 'ACTIVE' }
+                    ]);
+                    setRequests([
+                        { docId: 'r1', id: 'SP-ORD-12345', recipient: 'Delhi Public School', employee: 'Rahul K.', books: 50, amount: '₹22,500', status: 'ZM PENDING', createdAt: Date.now() }
+                    ]);
+                    return;
+                }
+
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'live-crm-app';
                 const { collection, onSnapshot } = window.FB;
 
@@ -531,29 +551,44 @@
                     setRequests(data);
                 }, (err) => console.error(err));
 
-                return () => { unsubSkus(); unsubReqs(); };
+                return () => { 
+                    unsubSkus(); 
+                    unsubReqs(); 
+                };
             }, [fbReady, db, user]);
 
             const handleAddSKU = async (skuData) => {
-                if(!db || !user) return;
+                if(!db || !user) {
+                    setSkus(prev => [...prev, { docId: Date.now().toString(), ...skuData }].sort((a,b) => a.name.localeCompare(b.name)));
+                    return;
+                }
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'live-crm-app';
                 await window.FB.addDoc(window.FB.collection(db, 'artifacts', appId, 'public', 'data', 'skus'), skuData);
             };
 
             const handleUpdateSKU = async (docId, newStatus) => {
-                if(!db || !user) return;
+                if(!db || !user) {
+                    setSkus(prev => prev.map(s => s.docId === docId ? { ...s, status: newStatus } : s));
+                    return;
+                }
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'live-crm-app';
                 await window.FB.updateDoc(window.FB.doc(db, 'artifacts', appId, 'public', 'data', 'skus', docId), { status: newStatus });
             };
 
             const handleDeleteSKU = async (docId) => {
-                if(!db || !user) return;
+                if(!db || !user) {
+                    setSkus(prev => prev.filter(s => s.docId !== docId));
+                    return;
+                }
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'live-crm-app';
                 await window.FB.deleteDoc(window.FB.doc(db, 'artifacts', appId, 'public', 'data', 'skus', docId));
             };
 
             const handleAddRequest = async (reqData) => {
-                if(!db || !user) return;
+                if(!db || !user) {
+                    setRequests(prev => [{ docId: Date.now().toString(), ...reqData, createdAt: Date.now() }, ...prev]);
+                    return;
+                }
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'live-crm-app';
                 await window.FB.addDoc(window.FB.collection(db, 'artifacts', appId, 'public', 'data', 'requests'), { 
                     ...reqData, 
@@ -562,17 +597,22 @@
             };
 
             const handleUpdateRequest = async (docId, newStatus) => {
-                if(!db || !user) return;
+                if(!db || !user) {
+                    setRequests(prev => prev.map(r => r.docId === docId ? { ...r, status: newStatus } : r));
+                    return;
+                }
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'live-crm-app';
                 await window.FB.updateDoc(window.FB.doc(db, 'artifacts', appId, 'public', 'data', 'requests', docId), { status: newStatus });
             };
 
             const handleDeleteRequest = async (docId) => {
-                if(!db || !user) return;
+                if(!db || !user) {
+                    setRequests(prev => prev.filter(r => r.docId !== docId));
+                    return;
+                }
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'live-crm-app';
                 await window.FB.deleteDoc(window.FB.doc(db, 'artifacts', appId, 'public', 'data', 'requests', docId));
             };
-
 
             if (!fbReady) {
                 return (
