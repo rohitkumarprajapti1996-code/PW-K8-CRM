@@ -130,3 +130,28 @@ Never share service-role keys, Firebase private credentials, passwords, or OTPs.
 ## Safety decision
 
 This branch records the audit findings only. The critical authentication/data-boundary issues must not be "fixed" by blindly merging the OTP branch or by guessing database policies. The next implementation step is to confirm the backend and role model, then make the changes on this isolated branch and validate them before any merge.
+
+
+## Additional connected Supabase project inspection
+
+The Supabase URL embedded in the existing OTP feature branch resolves to the connected project named **rohitkumarprajapti1996@gmail.com's Project** (region `ap-southeast-1`). I inspected its public table metadata, migration history, edge-function inventory, and Supabase security/performance advisors using read-only operations. No database writes, migrations, function deployments, or policy changes were made.
+
+The project currently contains CRM snapshot/access tables (including `crm_shared_snapshots`, `crm_printing_snapshots`, `crm_print_projection_workbooks`, and `crm_access_requests`) alongside several e-commerce/Shopify table families and payment-related functions. This confirms the project is not an empty, dedicated PW-K8-CRM database. It may be shared with other active workflows and must not be modified as part of this repository work without explicit confirmation.
+
+### Live project advisor findings
+
+- **RLS enabled but no policies:** Supabase reports three public tables with RLS enabled and no policies: `ecommerce_admins`, `shopify_admins`, and `shopify_lite_payment_webhook_events`. This is not proof of public exposure; with no policies, ordinary RLS-protected access is denied. Confirm intended server-side access before changing anything.
+- **Callable SECURITY DEFINER functions:** advisors report public execution of `rls_auto_enable()` and `shopify_is_admin()` for anon, and authenticated execution of additional SECURITY DEFINER functions including `is_ecommerce_admin()` and `shopify_lite_create_order(...)`. These functions need source and grants reviewed. Do not revoke grants blindly because live commerce workflows may depend on them.
+- **Auth hardening:** leaked-password protection is disabled according to the Auth advisor.
+- **Performance:** advisors report 11 unindexed foreign keys, 12 RLS policies with per-row auth-function evaluation, and several overlapping permissive policies. These should be prioritized only after confirming table ownership and workload impact.
+
+Relevant Supabase advisor references:
+- [RLS enabled without policies](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)
+- [SECURITY DEFINER function executable by anon](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable)
+- [SECURITY DEFINER function executable by authenticated users](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable)
+- [Leaked password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)
+- [Unindexed foreign keys](https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys)
+- [RLS init plan](https://supabase.com/docs/guides/database/database-linter?lint=0003_auth_rls_initplan)
+- [Multiple permissive policies](https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies)
+
+**Important:** the Supabase project inspection changes the implementation decision: do not apply schema changes or security-policy edits to this project yet. First confirm whether this is the intended backend for PW-K8-CRM and identify which existing tables/workflows must remain untouched.
